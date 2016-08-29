@@ -82,6 +82,18 @@ def map_result():
     all_projects = project_repo.get_all()
     return render_template('/admin/map_result.html', all_projects=all_projects)
 
+@blueprint.route('/map-result-data')
+@login_required
+@admin_required
+def map_result_data():
+    selected_project = request.args.get('currentProject');  
+    # TODO: 
+    # Write  mongo query to get user submitions based on the selected project.
+    # This will work after project schecduler is finished.
+    # query_data = self.mongo.db[self.collection_name].find()
+    user_contributions = "query data"; #mongo query data
+    return user_contributions
+
 @blueprint.route('/featured')
 @blueprint.route('/featured/<int:project_id>', methods=['POST', 'DELETE'])
 @login_required
