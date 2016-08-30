@@ -23,6 +23,9 @@ from flask import current_app, render_template
 from flask.ext.mail import Message
 from pybossa.core import mail, task_repo, importer
 from pybossa.model.webhook import Webhook
+from pybossa.model.task_run import TaskRun
+from pybossa.model.project import Project
+from pybossa.core import mongo_db
 from pybossa.util import with_cache_disabled, publish_channel
 import pybossa.dashboard.jobs as dashboard
 
@@ -42,6 +45,7 @@ def schedule_job(function, scheduler):
         interval=function['interval'],
         repeat=None,
         timeout=function['timeout'])
+    print job
     for sj in scheduled_jobs:
         if (function['name'].__name__ in sj.func_name and
             sj.args == function['args'] and
@@ -50,12 +54,17 @@ def schedule_job(function, scheduler):
             msg = ('WARNING: Job %s(%s, %s) is already scheduled'
                    % (function['name'].__name__, function['args'],
                       function['kwargs']))
-            return msg
+            return msg 
     msg = ('Scheduled %s(%s, %s) to run every %s seconds'
            % (function['name'].__name__, function['args'], function['kwargs'],
               function['interval']))
     return msg
 
+def get_cron_jobs():
+
+    mongo_cron = get_mongo_jobs()
+
+    return mongo_cron
 
 def get_quarterly_date(now):
     """Get quarterly date."""
@@ -89,12 +98,14 @@ def enqueue_periodic_jobs(queue_name):
     n_jobs = 0
     queue = Queue(queue_name, connection=redis_conn)
     for job in jobs_generator:
+        print job
         if (job['queue'] == queue_name):
             n_jobs += 1
             queue.enqueue_call(func=job['name'],
                                args=job['args'],
                                kwargs=job['kwargs'],
-                               timeout=job['timeout'])
+                               timeout=job['timeout'],
+                               interval=job['interval'])
     msg = "%s jobs in %s have been enqueued" % (n_jobs, queue_name)
     return msg
 
@@ -105,6 +116,10 @@ def get_periodic_jobs(queue):
     # timeout, queue)
     # Default ones
     jobs = get_default_jobs()
+
+    # Update mongodb with the latest user submissions
+    # mongo_jobs = get_mongo_jobs(queue) if queue == ('high', 'low') else []
+    # print "Starting mongo job"
     # Create ZIPs for all projects
     zip_jobs = get_export_task_jobs(queue) if queue in ('high', 'low') else []
     # Based on type of user
@@ -116,7 +131,7 @@ def get_periodic_jobs(queue):
         if queue == 'quaterly' else []
     dashboard_jobs = get_dashboard_jobs() if queue == 'low' else []
     weekly_update_jobs = get_weekly_stats_update_projects() if queue == 'low' else []
-    _all = [zip_jobs, jobs, project_jobs, autoimport_jobs,
+    _all = [mongo_jobs, zip_jobs, jobs, project_jobs, autoimport_jobs,
             engage_jobs, non_contrib_jobs, dashboard_jobs,
             weekly_update_jobs]
     return (job for sublist in _all for job in sublist if job['queue'] == queue)
@@ -132,6 +147,44 @@ def get_default_jobs():  # pragma: no cover
                timeout=(10 * MINUTE), queue='super')
     yield dict(name=news, args=[], kwargs={},
                timeout=(10 * MINUTE), queue='low')
+    yield dict(name=update_mongodb_with_user_submissions, args=[], kwargs={},
+               timeout=(10 * MINUTE), queue='low')
+
+def get_mongo_jobs():
+    job = dict(name=update_mongodb_with_user_submissions, args=[], interval=(10 * MINUTE), kwargs={},
+               timeout=(10 * MINUTE), queue='super')
+
+    enqueue_job(job)
+
+def update_mongodb_with_user_submissions():
+    mongo_db.db["confirm"].insert({"json_result":"hahhaa"})
+    try:
+      task_run = TaskRun.query.filter(TaskRun.transfered_in_mongo == 0)
+      for task in task_run:
+          if task.transfered_in_mongo ==0:
+              json_result = {}
+              json_result['id'] = task.id
+              json_result['created']= task.created
+              json_result['project_id']= task.project_id
+              json_result['task_id']= task.task_id
+              json_result['user_id']= task.user_id
+              json_result['user_ip']= task.user_ip
+              json_result['finish_time']= task.finish_time
+              json_result['timeout']= task.timeout
+              json_result['calibration']= task.calibration
+              json_result['info']= task.info
+              json_result['project_name'] = Project.query.get(json_result['project_id']).short_name
+
+              query = 'UPDATE task_run SET transfered_in_mongo=1 WHERE task_id='+str(task.task_id)+';'
+              query_result = db.engine.execute(query)
+              mongo_db.db[slugify_collection(json_result['project_name'])].insert(json_result)
+        
+    except Exception as e:
+        print "---------------------------------------"
+        print e
+        print "Please execute > ALTER TABLE task_run ADD COLUMN transfered_in_mongo integer  NOT NULL DEFAULT '0'; in psql and than re-run this method"
+        print "---------------------------------------"
+
 
 
 def get_export_task_jobs(queue):

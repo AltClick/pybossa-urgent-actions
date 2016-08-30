@@ -49,6 +49,9 @@ class TaskRun(db.Model, DomainObject):
     calibration = Column(Integer)
     #: Value of the answer.
     info = Column(JSON)
+    #: Value to know if we transfered the result in Mongo or not
+    transfered_in_mongo = Column(Integer)
+
     '''General writable field that should be used by clients to record results\
     of a TaskRun. Usually a template for this will be provided by Task
     For example::

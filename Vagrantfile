@@ -34,4 +34,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: $ansible_install_script
   # do the final Ansible local provisioning
   config.vm.provision "shell", inline: $ansible_local_provisioning_script
+  config.vm.provision :shell, path: "provision-mongo.sh"
 end

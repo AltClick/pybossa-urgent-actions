@@ -31,7 +31,9 @@ from raven.contrib.flask import Sentry
 from pybossa.util import pretty_date
 from pybossa.news import FEED_KEY as NEWS_FEED_KEY
 from pybossa.news import get_news
+from flask.ext.pymongo import PyMongo
 
+mongo_db = PyMongo()
 
 def create_app(run_as_server=True):
     """Create web app."""
@@ -48,6 +50,7 @@ def create_app(run_as_server=True):
     setup_babel(app)
     setup_markdown(app)
     setup_db(app)
+    setup_mongo_db(app, mongo_db)
     setup_repositories()
     setup_exporter(app)
     mail.init_app(app)
@@ -79,6 +82,7 @@ def configure_app(app):
     app.config.from_object(settings)
     app.config.from_envvar('PYBOSSA_SETTINGS', silent=True)
     # parent directory
+
     if not os.environ.get('PYBOSSA_SETTINGS'):  # pragma: no cover
         here = os.path.dirname(os.path.abspath(__file__))
         config_path = os.path.join(os.path.dirname(here), 'settings_local.py')
@@ -93,6 +97,7 @@ def configure_app(app):
         print "Slave binds are misssing, adding Master as slave too."
         app.config['SQLALCHEMY_BINDS'] = \
             dict(slave=app.config.get('SQLALCHEMY_DATABASE_URI'))
+    app.config['MONGO_DBNAME'] = app.config.get('MONGODB_NAME')
 
 
 def setup_sse(app):
@@ -162,6 +167,14 @@ def setup_db(app):
                     db.slave_session.commit()
             db.slave_session.remove()
             return response_or_exc
+
+def setup_mongo_db(app, mongo_db):
+    """Setup database."""
+
+    mongo_db.app = app
+    mongo_db.init_app(app)
+
+    return mongo_db
 
 
 def setup_repositories():
@@ -600,7 +613,7 @@ def setup_scheduled_jobs(app):  # pragma: no cover
     """Setup scheduled jobs."""
     from datetime import datetime
     from pybossa.jobs import enqueue_periodic_jobs, schedule_job, \
-        get_quarterly_date
+        get_quarterly_date, get_cron_jobs
     from rq_scheduler import Scheduler
     redis_conn = sentinel.master
     scheduler = Scheduler(queue_name='scheduled_jobs', connection=redis_conn)
@@ -622,8 +635,20 @@ def setup_scheduled_jobs(app):  # pragma: no cover
                  interval=(3 * MONTH), timeout=(30 * MINUTE),
                  scheduled_time=first_quaterly_execution)]
 
+    # cron_jobs = get_cron_jobs
+
+    # for cj in cron_jobs:
+    #     scheduler.cron(
+    #         cron_string,                # A cron string (e.g. "0 0 * * 0")
+    #         func=cj['name'],                  # Function to be queued
+    #         args=cj['args'],          # Arguments passed into function when executed
+    #         kwargs=cj['args'],      # Keyword arguments passed into function when executed
+    #         repeat=None                   # Repeat this number of times (None means repeat forever)
+    #         queue_name='scheduled_jobs'       # In which queue the job should be put in
+    #     )
     for job in JOBS:
-        schedule_job(job, scheduler)
+        msg = schedule_job(job, scheduler)
+        print msg
 
 
 def setup_newsletter(app):

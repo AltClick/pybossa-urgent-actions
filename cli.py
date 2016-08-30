@@ -5,16 +5,22 @@ import optparse
 import inspect
 
 #import pybossa.model as model
-from pybossa.core import db, create_app
+from pybossa.core import db, create_app, mongo_db
 from pybossa.model.project import Project
 from pybossa.model.user import User
+from pybossa.model.task_run import TaskRun
+from pybossa.model.result import Result
 from pybossa.model.category import Category
+from pybossa.util import slugify_collection
 
 from alembic.config import Config
 from alembic import command
 from html2text import html2text
 from sqlalchemy.sql import text
-
+from sqlalchemy.schema import Sequence, CreateSequence
+import sqlalchemy as sa
+from sqlalchemy import Column, Integer
+from alembic import op
 app = create_app(run_as_server=False)
 
 def setup_alembic_config():
@@ -38,6 +44,37 @@ def db_create():
                           description='Volunteer Sensing projects'))
         db.session.add_all(categories)
         db.session.commit()
+
+def update_mongo_database():
+    '''Update mongo db with the latest user submissions'''
+    with app.app_context():
+        try:
+            task_run = TaskRun.query.filter(TaskRun.transfered_in_mongo == 1)
+            for task in task_run:
+                print task
+                if task.transfered_in_mongo ==0:
+                    json_result = {}
+                    json_result['id'] = task.id
+                    json_result['created']= task.created
+                    json_result['project_id']= task.project_id
+                    json_result['task_id']= task.task_id
+                    json_result['user_id']= task.user_id
+                    json_result['user_ip']= task.user_ip
+                    json_result['finish_time']= task.finish_time
+                    json_result['timeout']= task.timeout
+                    json_result['calibration']= task.calibration
+                    json_result['info']= task.info
+                    json_result['project_name'] = Project.query.get(json_result['project_id']).short_name
+
+                    query = 'UPDATE task_run SET transfered_in_mongo=1 WHERE task_id='+str(task.task_id)+';'
+                    query_result = db.engine.execute(query)
+                    mongo_db.db[slugify_collection(json_result['project_name'])].insert(json_result)
+
+        except Exception as e:
+            print "---------------------------------------"
+            print e
+            print "Please execute > ALTER TABLE task_run ADD COLUMN transfered_in_mongo integer  NOT NULL DEFAULT '0'; in psql and than re-run this"
+            print "---------------------------------------"
 
 def db_rebuild():
     '''Rebuild the db'''
@@ -306,7 +343,7 @@ def resize_avatars():
                 if u.info.get('container'):
                     cont = cf.get_container(u.info['container'])
                     if cont.cdn_ssl_uri:
-                    	avatar_url = "%s/%s" % (cont.cdn_ssl_uri, u.info['avatar'])
+                        avatar_url = "%s/%s" % (cont.cdn_ssl_uri, u.info['avatar'])
                     else:
                         cont.make_public()
                         avatar_url = "%s/%s" % (cont.cdn_ssl_uri, u.info['avatar'])

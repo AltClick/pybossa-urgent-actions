@@ -393,6 +393,8 @@ def _points_by_interval(value, weight=1):
         return 1 * weight
     return 0
 
+def slugify_collection(collection_name):
+    return ''.join(e for e in collection_name if e.isalnum()).lower()
 
 def publish_channel(sentinel, project_short_name, data, type, private=True):
     """Publish in a channel some JSON data as a string."""
