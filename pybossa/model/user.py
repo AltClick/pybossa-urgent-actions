@@ -72,6 +72,12 @@ class User(db.Model, DomainObject, UserMixin):
     blogposts = relationship(Blogpost, backref='owner')
 
 
+    @property
+    def task_contributions(self): 
+        ''' Get number of contriubtions by user'''
+        return TaskRun.query.filter_by(user_id=self.id).count()
+
+
     def get_id(self):
         '''id for login system. equates to name'''
         return self.name
