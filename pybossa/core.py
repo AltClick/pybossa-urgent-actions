@@ -27,10 +27,14 @@ from flask.ext.assets import Bundle
 from pybossa import default_settings as settings
 from pybossa.extensions import *
 from pybossa.ratelimit import get_view_rate_limit
+from flask.ext.pymongo import PyMongo
 from raven.contrib.flask import Sentry
 from pybossa.util import pretty_date
 from pybossa.news import FEED_KEY as NEWS_FEED_KEY
 from pybossa.news import get_news
+
+
+mongo_db = PyMongo()
 
 
 def create_app(run_as_server=True):
@@ -642,7 +646,9 @@ def setup_scheduled_jobs(app):  # pragma: no cover
     HOUR = 60 * 60
     MONTH = 30 * (24 * HOUR)
     first_quaterly_execution = get_quarterly_date(datetime.utcnow())
-    JOBS = [dict(name=enqueue_periodic_jobs, args=['super'], kwargs={},
+    JOBS = [dict(name=enqueue_periodic_jobs, args=['super_high'], kwargs={},
+                 interval=1, timeout=2, repeat=None),
+            dict(name=enqueue_periodic_jobs, args=['super'], kwargs={},
                  interval=(10 * MINUTE), timeout=(10 * MINUTE)),
             dict(name=enqueue_periodic_jobs, args=['high'], kwargs={},
                  interval=(1 * HOUR), timeout=(10 * MINUTE)),
@@ -658,6 +664,7 @@ def setup_scheduled_jobs(app):  # pragma: no cover
 
     for job in JOBS:
         schedule_job(job, scheduler)
+
 
 
 def setup_newsletter(app):

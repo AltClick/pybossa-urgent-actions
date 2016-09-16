@@ -24,6 +24,10 @@ from flask.ext.mail import Message
 from pybossa.core import mail, task_repo, importer
 from pybossa.model.webhook import Webhook
 from pybossa.util import with_cache_disabled, publish_channel
+from pybossa.model.task_run import TaskRun
+from pybossa.model.project import Project
+from pybossa.core import mongo_db
+import sys
 import pybossa.dashboard.jobs as dashboard
 
 
@@ -99,6 +103,11 @@ def enqueue_periodic_jobs(queue_name):
     return msg
 
 
+def update_mongodb_with_user_submissions():
+    print 'update'
+    return True
+
+
 def get_periodic_jobs(queue):
     """Return a list of periodic jobs for a given queue."""
     # A job is a dict with the following format: dict(name, args, kwargs,
@@ -124,6 +133,8 @@ def get_periodic_jobs(queue):
 
 def get_default_jobs():  # pragma: no cover
     """Return default jobs."""
+    yield dict(name=update_mongodb_with_user_submissions, args=[], kwargs={},
+               timeout=1, interval=1, queue='super_high')
     yield dict(name=warm_up_stats, args=[], kwargs={},
                timeout=(10 * MINUTE), queue='high')
     yield dict(name=warn_old_project_owners, args=[], kwargs={},
