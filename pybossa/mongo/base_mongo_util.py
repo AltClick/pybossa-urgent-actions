@@ -12,7 +12,7 @@ class BaseMongoUtil(object):
         doc['timestamp'] = datetime.datetime.now()
         current_app.mongo.db[self.collection_name].insert_one(doc)
 
-    def get_tile_results(self, project_id=None, task_id=None):
+    def consolidate_redundancy(self, project_id=None, task_id=None):
         unwind_taskrun = {
             "$unwind": "$info.taskrun"
         }

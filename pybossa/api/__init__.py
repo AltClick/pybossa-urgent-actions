@@ -153,7 +153,7 @@ def _retrieve_new_task(project_id):
 @ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
 def _get_tile_results():
     try:
-        results = task_run_mongo.get_tile_results()
+        results = task_run_mongo.consolidate_redundancy()
         result_dumps = json_util.dumps(results)
         return Response(result_dumps, 200,
                         mimetype='application/json')
