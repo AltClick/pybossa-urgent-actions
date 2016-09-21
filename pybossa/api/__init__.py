@@ -30,8 +30,11 @@ This package adds GET, POST, PUT and DELETE methods for:
 """
 
 import json
+
+from bson import json_util
 from flask import Blueprint, request, abort, Response, make_response
 from flask.ext.login import current_user
+from pybossa.mongo import task_run_mongo
 from werkzeug.exceptions import NotFound
 from pybossa.util import jsonpify, crossdomain, get_user_id_or_ip
 import pybossa.model as model
@@ -142,6 +145,20 @@ def _retrieve_new_task(project_id):
                           user_ip,
                           offset)
     return task
+
+
+@jsonpify
+@blueprint.route('/get-results')
+@crossdomain(origin='*', headers=cors_headers)
+@ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
+def _get_tile_results():
+    try:
+        results = task_run_mongo.get_tile_results()
+        result_dumps = json_util.dumps(results)
+        return Response(result_dumps, 200,
+                        mimetype='application/json')
+    except Exception as e:
+        return e.message
 
 
 @jsonpify

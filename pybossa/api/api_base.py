@@ -27,6 +27,8 @@ This package adds GET, POST, PUT and DELETE methods for any class:
 
 """
 import json
+
+from bson import json_util
 from flask import request, abort, Response
 from flask.ext.login import current_user
 from flask.views import MethodView
@@ -207,17 +209,7 @@ class APIBase(MethodView):
             getattr(repo, save_func)(inst)
             self._log_changes(None, inst)
 
-            # Save in MongoDB database
-            # TODO: save all user info:
-            #   - username (or IP if anonymous user
-            #   - task start time
-            #   - task end time
-            #   - total time spent on task
-            #   - country
-            #   - what else?
             task_run_mongo.insert_one(data)
-
-
             return json.dumps(inst.dictize())
         except Exception as e:
             return error.format_exception(
@@ -232,6 +224,7 @@ class APIBase(MethodView):
         ensure_authorized_to('create', inst)
         self._validate_instance(inst)
         return inst
+
 
     @jsonpify
     @crossdomain(origin='*', headers=cors_headers)
