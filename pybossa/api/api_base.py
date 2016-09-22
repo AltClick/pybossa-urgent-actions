@@ -240,6 +240,7 @@ class APIBase(MethodView):
         self._validate_instance(inst)
         return inst
 
+
     @jsonpify
     @crossdomain(origin='*', headers=cors_headers)
     @ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
