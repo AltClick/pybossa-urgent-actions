@@ -60,9 +60,9 @@ class AreaCalculator():
             sq_km_decoded["all_volunteers"] = math.floor(self.calculate_task_area_km_sq(zoom) * counts)
             print current_user
             if current_user.is_authenticated():
-                sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded(1))
+                sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded(True))
             else:
-                sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded())
+                sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded(False))
 
         print sq_km_decoded
         return json_util.dumps(sq_km_decoded)
@@ -73,7 +73,8 @@ class AreaCalculator():
 
     @staticmethod
     def get_anonymous_user_results():
-        return task_run_mongo.get_tasks_count(ip=request.remote_addr)
+        ip_addr = json_util.dumps(request.remote_addr)
+        return task_run_mongo.get_tasks_count(ip=ip_addr)
 
     def get_current_user_square_km_decoded(self, is_authenticated):
         if is_authenticated:
@@ -81,6 +82,9 @@ class AreaCalculator():
         else:
             results_user = self.get_anonymous_user_results()
         json_results_user = json.loads(json_util.dumps(results_user))
-        zoom_user = json_results_user[0]['zoom']
-        counts_user = json_results_user[0]['counts']
-        return self.calculate_task_area_km_sq(zoom_user) * counts_user
+        if len(json_results_user) > 0:
+            zoom_user = json_results_user[0]['zoom']
+            counts_user = json_results_user[0]['counts']
+            return self.calculate_task_area_km_sq(zoom_user) * counts_user
+        else:
+            return 0
