@@ -207,7 +207,6 @@ def user_progress(project_id=None, short_name=None):
             project = project_repo.get_by_shortname(short_name)
         elif project_id:
             project = project_repo.get(project_id)
-        print project
 
         if project:
             # For now, keep this version, but wait until redis cache is used here for task_runs too
