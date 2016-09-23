@@ -33,7 +33,7 @@ class AreaCalculator():
         return self.calculate_tile_edge_length_meters(zoom_level) / 1000
 
     def calculate_tile_area_meters_sq(self, zoom_level):
-        return math.pow(self.calculate_tile_edge_length_km(zoom_level), 2)
+        return math.pow(self.calculate_tile_edge_length_meters(zoom_level), 2)
 
     def calculate_tile_area_km_sq(self, zoom_level):
         return self.calculate_tile_area_meters_sq(zoom_level) / 1000
