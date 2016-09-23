@@ -12,7 +12,7 @@ class BaseMongoUtil(object):
         doc['timestamp'] = datetime.datetime.now()
         current_app.mongo.db[self.collection_name].insert_one(doc)
 
-    def consolidate_redundancy(self, project_id=None, task_id=None):
+    def consolidate_redundancy(self, project_short_name=None, task_id=None):
         unwind_taskrun = {
             "$unwind": "$info.taskrun"
         }
@@ -138,11 +138,13 @@ class BaseMongoUtil(object):
             }
         }
 
-        if project_id:
-            match["$match"]["project_id"] = project_id
+        if project_short_name:
+            match["$match"]["project_short_name"] = project_short_name
 
         if task_id:
             match["$match"]["task_id"] = task_id
+
+        print match
 
         aggregation = [unwind_taskrun, match, group_1, sort_1, group_2, unwind_tiles, group_3, sort_2, group_4, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
