@@ -163,12 +163,21 @@ def get_km_square(short_name=None):
         except Exception as e:
             return e.message
 
-@blueprint.route('/get-results')
+
+@jsonpify
+@blueprint.route('/validated/results.json')
+@blueprint.route('/<int:project_id>/validated/results.json')
+@blueprint.route('/<int:project_id>/validated/<int:task_id>/results.json')
 @crossdomain(origin='*', headers=cors_headers)
 @ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
-def _get_tile_results():
+def _get_tile_results(project_id=None, task_id=None):
     try:
-        results = task_run_mongo.consolidate_redundancy()
+        if project_id and task_id:
+            results = task_run_mongo.consolidate_redundancy(project_id, task_id)
+        if task_id:
+            results = task_run_mongo.consolidate_redundancy(task_id)
+        if project_id:
+            results = task_run_mongo.consolidate_redundancy(project_id)
         result_dumps = json_util.dumps(results)
         return Response(result_dumps, 200,
                         mimetype='application/json')
