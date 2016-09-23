@@ -146,3 +146,46 @@ class BaseMongoUtil(object):
 
         aggregation = [unwind_taskrun, match, group_1, sort_1, group_2, unwind_tiles, group_3, sort_2, group_4, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
+
+    def get_tasks_count(self, user=None, ip=None):
+        match = {
+            "$match": {}
+        }
+        group_1 = {
+            "$group": {
+                "_id": {
+                    "task_id": "$task_id",
+                    "zoom": "$info.zoom"
+                },
+                "count": {
+                    "$sum": 1
+                }
+            }
+        }
+        group_2 = {
+            "$group": {
+                "_id": {
+                    "task_id": "$_id.task",
+                    "zoom": "$_id.zoom"
+                },
+                "counts": {
+                    "$sum": 1
+                }
+            }
+        }
+        project = {
+            "$project": {
+                "_id": 0,
+                "zoom": "$_id.zoom",
+                "counts": "$counts"
+            }
+        }
+
+        if user:
+            match["$match"]["username"] = user
+
+        if ip:
+            match["$match"]["user_ip"] = ip
+
+        aggregation = [match, group_1, group_2, project]
+        return current_app.mongo.db[self.collection_name].aggregate(aggregation)
