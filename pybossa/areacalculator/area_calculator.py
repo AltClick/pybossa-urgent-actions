@@ -57,11 +57,11 @@ class AreaCalculator():
             if len(json_results) != 0:
                 zoom = json_results[0]['zoom']
                 counts = json_results[0]['counts']
-                sq_km_decoded["all_volunteers"] = math.floor(self.calculate_task_area_km_sq(zoom) * counts)
+                sq_km_decoded["all_volunteers"] = self.calculate_task_area_km_sq(zoom) * counts
                 if current_user.is_authenticated():
-                    sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded(True))
+                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(True)
                 else:
-                    sq_km_decoded["current_user"] = math.floor(self.get_current_user_square_km_decoded(False))
+                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(False)
 
         return json_util.dumps(sq_km_decoded)
 
