@@ -55,6 +55,8 @@ blueprint = Blueprint('account', __name__)
 mail_queue = Queue('super', connection=sentinel.master)
 
 def is_amnesty_sso_enable():
+    # disable sso for temp deploy
+    return False
     if ('AMNESTY_SSO_CONSUMER_KEY' in current_app.config):
         return True
     else:
