@@ -190,3 +190,30 @@ class TaskRunMongoUtil(BaseMongoUtil):
 
         aggregation = [match, group_1, group_2, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
+
+
+
+    def validate_human_presence(self, redundancy, project_short_name=None, task_id=None):
+        if project_short_name and task_id:
+            data = self.consolidate_redundancy(project_short_name, task_id)
+        elif project_short_name:
+            data = self.consolidate_redundancy(project_short_name)
+        elif task_id:
+            data = self.consolidate_redundancy(task_id)
+        else:
+            data = self.consolidate_redundancy()
+
+        results = []
+        for item in data:
+            if 'tiles' in item:
+                redundancy_tile = {}
+                redundancy_tile['zoom'] = item['zoom']
+                redundancy_tile['task_id'] = item['task_id']
+                tiles = item['tiles']
+                for tile in tiles:
+                    if tile['true'] >= redundancy and tile['true'] > tile['false']:
+                        redundancy_tile['x'] = tile['x']
+                        redundancy_tile['y'] = tile['y']
+                        redundancy_tile['true'] = tile['true']
+                    results.append(redundancy_tile)
+        return results
