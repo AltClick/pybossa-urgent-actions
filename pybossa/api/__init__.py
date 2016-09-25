@@ -165,19 +165,19 @@ def get_km_square(short_name=None):
 
 
 @jsonpify
-@blueprint.route('/validated/results.json')
-@blueprint.route('/<int:project_id>/validated/results.json')
-@blueprint.route('/<int:project_id>/validated/<int:task_id>/results.json')
+@blueprint.route('/project/<project_short_name>/validated/results.json')
+@blueprint.route('/project/<project_short_name>/validated/<int:task_id>/results.json')
 @crossdomain(origin='*', headers=cors_headers)
 @ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
-def _get_tile_results(project_id=None, task_id=None):
+def _get_tile_results(project_short_name=None, task_id=None):
     try:
-        if project_id and task_id:
-            results = task_run_mongo.consolidate_redundancy(project_id, task_id)
-        if task_id:
-            results = task_run_mongo.consolidate_redundancy(task_id)
-        if project_id:
-            results = task_run_mongo.consolidate_redundancy(project_id)
+        if project_short_name and task_id:
+            results = task_run_mongo.consolidate_redundancy(project_short_name, task_id)
+        else:
+            if task_id:
+                results = task_run_mongo.consolidate_redundancy(task_id)
+            if project_short_name:
+                results = task_run_mongo.consolidate_redundancy(project_short_name)
         result_dumps = json_util.dumps(results)
         return Response(result_dumps, 200,
                         mimetype='application/json')

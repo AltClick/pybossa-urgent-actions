@@ -12,7 +12,7 @@ class BaseMongoUtil(object):
         doc['timestamp'] = datetime.datetime.now()
         current_app.mongo.db[self.collection_name].insert_one(doc)
 
-    def consolidate_redundancy(self, project_id=None, task_id=None):
+    def consolidate_redundancy(self, project_short_name=None, task_id=None):
         unwind_taskrun = {
             "$unwind": "$info.taskrun"
         }
@@ -27,6 +27,7 @@ class BaseMongoUtil(object):
             "$group": {
                 "_id": {
                     "task_id": "$task_id",
+                    "zoom": "$info.zoom",
                     "tile_id": "$info.taskrun.id",
                     "x": "$info.taskrun.x",
                     "y": "$info.taskrun.y",
@@ -65,7 +66,8 @@ class BaseMongoUtil(object):
             "$group": {
                 "_id": {
                     "task_id": "$_id.task_id",
-                    "id": "$_id.tile_id"
+                    "id": "$_id.tile_id",
+                    "zoom": "$_id.zoom"
                 },
                 "tiles": {
                     "$push": {
@@ -89,7 +91,8 @@ class BaseMongoUtil(object):
                     "task_id": "$_id.task_id",
                     "tile_id": "$tiles.id",
                     "x": "$tiles.x",
-                    "y": "$tiles.y"
+                    "y": "$tiles.y",
+                    "zoom": "$_id.zoom"
                 },
                 "true": {
                     "$sum": "$tiles.true"
@@ -103,7 +106,8 @@ class BaseMongoUtil(object):
         group_4 = {
             "$group": {
                 "_id": {
-                    "task_id": "$_id.task_id"
+                    "task_id": "$_id.task_id",
+                    "zoom": "$_id.zoom"
                 },
                 "tiles": {
                     "$push": {
@@ -134,12 +138,13 @@ class BaseMongoUtil(object):
             "$project": {
                 "_id": 0,
                 "task_id": "$_id.task_id",
+                "zoom": "$_id.zoom",
                 "tiles": "$tiles"
             }
         }
 
-        if project_id:
-            match["$match"]["project_id"] = project_id
+        if project_short_name:
+            match["$match"]["project_short_name"] = project_short_name
 
         if task_id:
             match["$match"]["task_id"] = task_id
