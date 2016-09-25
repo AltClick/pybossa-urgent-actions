@@ -42,7 +42,7 @@ class AreaCalculator():
         return self.calculate_tile_area_meters_sq(zoom_level) * 12
 
     def calculate_task_area_km_sq(self, zoom_level):
-        return self.calculate_tile_area_km_sq(zoom_level) * 12
+        return (self.calculate_tile_area_km_sq(zoom_level) / 1000) * 12
 
     def get_square_km_all_volunteers(self):
         results = task_run_mongo.get_tasks_count()
