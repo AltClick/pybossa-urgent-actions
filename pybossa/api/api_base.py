@@ -211,6 +211,8 @@ class APIBase(MethodView):
             inst_dumps = json.dumps(inst.dictize())
             current_user_json = json.loads(current_user_dumps)
             json_inst = json.loads(inst_dumps)
+            project = project_repo.get(inst.project_id)
+            project_short_name = project.short_name
 
             # Including user information when saving task run in MongoDB.
             if current_user.is_authenticated():
@@ -221,6 +223,7 @@ class APIBase(MethodView):
 
             start_time = datetime.datetime.strptime(str(json_inst["created"]), "%Y-%m-%dT%H:%M:%S.%f")
             finish_time = datetime.datetime.strptime(str(json_inst["finish_time"]), "%Y-%m-%dT%H:%M:%S.%f")
+            data["project_short_name"] = project_short_name
             data["start_time"] = start_time
             data["finish_time"] = finish_time
             data["spent_time"] = (finish_time - start_time).total_seconds()
