@@ -145,10 +145,13 @@ class TaskRunMongoUtil(BaseMongoUtil):
         aggregation = [unwind_taskrun, match, group_1, sort_1, group_2, unwind_tiles, group_3, sort_2, group_4, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
 
-    def get_tasks_count(self, user=None, ip=None):
+    def get_tasks_count(self, user=None, ip=None, project_short_name=None):
         match = {
             "$match": {}
         }
+
+        if project_short_name:
+            match["$match"]["project_short_name"] = project_short_name
         group_1 = {
             "$group": {
                 "_id": {

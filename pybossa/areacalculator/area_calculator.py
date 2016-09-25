@@ -37,7 +37,7 @@ class AreaCalculator():
     def calculate_task_area_km_sq(self, zoom_level):
         return self.calculate_task_area_meters_sq(zoom_level) / 1000000
 
-    def get_square_km_all_volunteers(self):
+    def get_square_km_all_volunteers(self, project_short_name):
         results = task_run_mongo.get_tasks_count()
         json_results = json.loads(json_util.dumps(results))
         sq_km_decoded = {
@@ -52,26 +52,26 @@ class AreaCalculator():
                 counts = json_results[0]['counts']
                 sq_km_decoded["all_volunteers"] = self.calculate_task_area_km_sq(zoom) * counts
                 if current_user.is_authenticated():
-                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(True)
+                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(True, project_short_name)
                 else:
-                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(False)
+                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(False, project_short_name)
 
         return json_util.dumps(sq_km_decoded)
 
     @staticmethod
-    def get_authenticated_user_results():
-        return task_run_mongo.get_tasks_count(user=current_user.name)
+    def get_authenticated_user_results(project_short_name):
+        return task_run_mongo.get_tasks_count(user=current_user.name, project_short_name=project_short_name)
 
     @staticmethod
-    def get_anonymous_user_results():
+    def get_anonymous_user_results(project_short_name):
         ip_addr = json_util.dumps(request.remote_addr)
-        return task_run_mongo.get_tasks_count(ip=ip_addr)
+        return task_run_mongo.get_tasks_count(ip=ip_addr, project_short_name=project_short_name)
 
-    def get_current_user_square_km_decoded(self, is_authenticated):
+    def get_current_user_square_km_decoded(self, is_authenticated, project_short_name):
         if is_authenticated:
-            results_user = self.get_authenticated_user_results()
+            results_user = self.get_authenticated_user_results(project_short_name)
         else:
-            results_user = self.get_anonymous_user_results()
+            results_user = self.get_anonymous_user_results(project_short_name)
         json_results_user = json.loads(json_util.dumps(results_user))
         if len(json_results_user) > 0:
             zoom_user = json_results_user[0]['zoom']

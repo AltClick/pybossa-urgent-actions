@@ -149,19 +149,19 @@ def _retrieve_new_task(project_id):
 
 
 @jsonpify
-@blueprint.route('/all-volunteers')
-@blueprint.route('/<short_name>/all-volunteers')
+@blueprint.route('/project/progress.json')
+@blueprint.route('/project/<project_short_name>/progress.json')
 @crossdomain(origin='*', headers=cors_headers)
-def get_km_square(short_name=None):
-    if short_name:
-        return Response(json.dumps({}), mimetype="application/json")
-    else:
+def get_km_square(project_short_name=None):
+    if project_short_name:
         try:
-            results = area_calculator.get_square_km_all_volunteers()
+            results = area_calculator.get_square_km_all_volunteers(project_short_name)
             return Response(results, 200,
                             mimetype='application/json')
         except Exception as e:
             return e.message
+    else:
+        return Response(json.dumps([]), mimetype="application/json")
 
 
 @jsonpify
