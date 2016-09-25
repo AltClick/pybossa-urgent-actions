@@ -28,21 +28,14 @@ class AreaCalculator():
     def calculate_tile_edge_length_meters(self, zoom_level):
         return self.GROUND_RES_PER_ZOOM[zoom_level] * self.TILE_PIXELS
 
-    # calculates the tile length in kilometers.
-    def calculate_tile_edge_length_km(self, zoom_level):
-        return self.calculate_tile_edge_length_meters(zoom_level) / 1000
-
     def calculate_tile_area_meters_sq(self, zoom_level):
         return math.pow(self.calculate_tile_edge_length_meters(zoom_level), 2)
 
-    def calculate_tile_area_km_sq(self, zoom_level):
-        return self.calculate_tile_area_meters_sq(zoom_level) / 1000
-
     def calculate_task_area_meters_sq(self, zoom_level):
-        return self.calculate_tile_area_meters_sq(zoom_level) * 12
+        return self.calculate_tile_area_meters_sq(zoom_level) * self.TILES_PER_TASK
 
     def calculate_task_area_km_sq(self, zoom_level):
-        return self.calculate_tile_area_km_sq(zoom_level) * 12
+        return self.calculate_task_area_meters_sq(zoom_level) / 1000000
 
     def get_square_km_all_volunteers(self):
         results = task_run_mongo.get_tasks_count()
