@@ -92,11 +92,11 @@ def map_result():
 @admin_required
 def map_result_data():
     """Return map results based on redundancy and project id."""
-    project_id = request.args.get('currentProjectId');
-    redundancy = request.args.get('selectedRedundancy');
-    user_contributions = task_run_mongo.validate_human_presence(redundancy) #FIX: include project_id. Now it isnt included as an argument cause it will return a empty list
+    data = json_util.loads(request.data)
+    project_short_name = data['project_short_name']
+    redundancy = data['redundancy']
+    user_contributions = task_run_mongo.validate_human_presence(redundancy)
     return json_util.dumps(user_contributions)
-
 
 @blueprint.route('/featured')
 @blueprint.route('/featured/<int:project_id>', methods=['POST', 'DELETE'])
