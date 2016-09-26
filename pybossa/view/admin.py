@@ -46,6 +46,9 @@ from StringIO import StringIO
 from pybossa.forms.admin_view_forms import *
 from pybossa.news import NOTIFY_ADMIN
 from pybossa.model.task_run import TaskRun
+from pybossa.mongo import task_run_mongo
+from bson import json_util
+
 
 blueprint = Blueprint('admin', __name__)
 
@@ -79,8 +82,21 @@ def map_tile_generator():
 @login_required
 @admin_required
 def map_result():
+    """Map result page ."""
     all_projects = project_repo.get_all()
     return render_template('/admin/map_result.html', all_projects=all_projects)
+
+
+@blueprint.route('/map-result-data', methods=[ "GET", "POST"])
+@login_required
+@admin_required
+def map_result_data():
+    """Return map results based on redundancy and project id."""
+    data = json_util.loads(request.data)
+    project_short_name = data['project_short_name']
+    redundancy = int(data['redundancy'])
+    user_contributions = task_run_mongo.validate_human_presence(redundancy, project_short_name)
+    return json_util.dumps(user_contributions)
 
 @blueprint.route('/featured')
 @blueprint.route('/featured/<int:project_id>', methods=['POST', 'DELETE'])
