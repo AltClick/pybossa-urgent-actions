@@ -94,7 +94,7 @@ def map_result_data():
     """Return map results based on redundancy and project id."""
     data = json_util.loads(request.data)
     project_short_name = data['project_short_name']
-    redundancy = data['redundancy']
+    redundancy = int(data['redundancy'])
     user_contributions = task_run_mongo.validate_human_presence(redundancy, project_short_name)
     return json_util.dumps(user_contributions)
 
