@@ -87,7 +87,7 @@ def map_result():
     return render_template('/admin/map_result.html', all_projects=all_projects)
 
 
-@blueprint.route('/map-result-data')
+@blueprint.route('/map-result-data', methods=[ "GET", "POST"])
 @login_required
 @admin_required
 def map_result_data():
@@ -95,7 +95,7 @@ def map_result_data():
     data = json_util.loads(request.data)
     project_short_name = data['project_short_name']
     redundancy = data['redundancy']
-    user_contributions = task_run_mongo.validate_human_presence(redundancy)
+    user_contributions = task_run_mongo.validate_human_presence(redundancy, project_short_name)
     return json_util.dumps(user_contributions)
 
 @blueprint.route('/featured')
