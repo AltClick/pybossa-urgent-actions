@@ -192,7 +192,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
 
 
-    def validate_human_presence(self, redundancy, project_short_name=None, task_id=None):
+    def validate_human_presence(self, redundancy, project_short_name, task_id=None):
         if project_short_name and task_id:
             data = self.consolidate_redundancy(project_short_name, task_id)
         elif project_short_name:
@@ -214,5 +214,5 @@ class TaskRunMongoUtil(BaseMongoUtil):
                         redundancy_tile['x'] = tile['x']
                         redundancy_tile['y'] = tile['y']
                         redundancy_tile['true'] = tile['true']
-                    results.append(redundancy_tile)
+                        results.append(redundancy_tile)
         return results
