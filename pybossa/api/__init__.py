@@ -222,3 +222,18 @@ def user_progress(project_id=None, short_name=None):
             return abort(404)
     else:  # pragma: no cover
         return abort(404)
+
+@jsonpify
+@blueprint.route('/project/get-tile-url')
+@crossdomain(origin='*', headers=cors_headers)
+@ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
+def get_tile_url():
+    try:
+        data = json.loads(request.args.get('data'))
+        results = tile_calculations.tile_cords_and_zoom_to_quadKey_and_url(data)
+        return json.dumps(results)
+    except Exception as e:
+        return e.message
+
+
+
