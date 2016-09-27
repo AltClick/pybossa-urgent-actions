@@ -172,11 +172,13 @@ def signout():
 
     # when Identity Management (IM) available then after logout in pybossa 
     # we will redirect to IM so it will clear its session and its other children's ones
-    if 'AMNESTY_SSO_SERVER_URL' in current_app.config:
-        im_logout_url = current_app.config['AMNESTY_SSO_SERVER_URL']
-        if im_logout_url is not None:
-            im_logout_url = im_logout_url + '/api/v1/sso/pybossa/logout'
-            return redirect(im_logout_url)
+    if 'AMNESTY_SSO_ENABLE' in current_app.config:
+        if current_app.config['AMNESTY_SSO_ENABLE'] :
+            if 'AMNESTY_SSO_SERVER_URL' in current_app.config:
+                im_logout_url = current_app.config['AMNESTY_SSO_SERVER_URL']
+                if im_logout_url is not None:
+                    im_logout_url = im_logout_url + '/api/v1/sso/pybossa/logout'
+                    return redirect(im_logout_url)
 
     return redirect(url_for('home.home'))
 
