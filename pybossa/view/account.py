@@ -55,10 +55,11 @@ blueprint = Blueprint('account', __name__)
 mail_queue = Queue('super', connection=sentinel.master)
 
 def is_amnesty_sso_enable():
-    if ('AMNESTY_SSO_CONSUMER_KEY' in current_app.config):
-        return True
-    else:
-        return False
+    if ('AMNESTY_SSO_ENABLE' in current_app.config):
+        if current_app.config['AMNESTY_SSO_ENABLE']:
+            return True
+    
+    return False
 
 def amnesty_url_for(pybossa_url):
     urls = {
