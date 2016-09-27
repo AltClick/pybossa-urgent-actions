@@ -56,7 +56,7 @@ from token import TokenAPI
 from result import ResultAPI
 from pybossa.core import project_repo, task_repo
 from pybossa.contributions_guard import ContributionsGuard
-
+from pybossa.tilecalculations import tile_calculations
 blueprint = Blueprint('api', __name__)
 
 cors_headers = ['Content-Type', 'Authorization']
