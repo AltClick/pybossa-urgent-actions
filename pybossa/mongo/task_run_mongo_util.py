@@ -152,10 +152,10 @@ class TaskRunMongoUtil(BaseMongoUtil):
 
         if project_short_name:
             match["$match"]["project_short_name"] = project_short_name
-        group_1 = {
+
+        group = {
             "$group": {
                 "_id": {
-                    "task_id": "$task_id",
                     "zoom": "$info.zoom"
                 },
                 "count": {
@@ -163,22 +163,12 @@ class TaskRunMongoUtil(BaseMongoUtil):
                 }
             }
         }
-        group_2 = {
-            "$group": {
-                "_id": {
-                    "task_id": "$_id.task",
-                    "zoom": "$_id.zoom"
-                },
-                "counts": {
-                    "$sum": 1
-                }
-            }
-        }
+
         project = {
             "$project": {
                 "_id": 0,
                 "zoom": "$_id.zoom",
-                "counts": "$counts"
+                "counts": "$count"
             }
         }
 
@@ -188,9 +178,8 @@ class TaskRunMongoUtil(BaseMongoUtil):
         if ip:
             match["$match"]["user_ip"] = ip
 
-        aggregation = [match, group_1, group_2, project]
+        aggregation = [match, group, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
-
 
     def validate_human_presence(self, redundancy, project_short_name, task_id=None):
         if project_short_name and task_id:

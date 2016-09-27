@@ -4,6 +4,7 @@ from bson import json_util
 from flask import request
 from flask.ext.login import current_user
 
+from pybossa.extensions import task_repo
 from pybossa.mongo import task_run_mongo
 import math
 

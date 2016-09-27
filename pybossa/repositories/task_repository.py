@@ -139,10 +139,8 @@ class TaskRepository(Repository):
         # But we only need one of them so .first().
         s = select([Task.n_answers]).where(Task.project_id == project.id)
         a_task = self.db.session.execute(s).first()
-
         # Return the redundancy value.
         return a_task['n_answers']
-
 
     def update_tasks_redundancy(self, project, n_answer):
         """update the n_answer of every task from a project and their state.
