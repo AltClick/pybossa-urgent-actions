@@ -206,13 +206,15 @@ class TaskRunMongoUtil(BaseMongoUtil):
         for item in data:
             if 'tiles' in item:
                 redundancy_tile = {}
-                redundancy_tile['zoom'] = item['zoom']
-                redundancy_tile['task_id'] = item['task_id']
                 tiles = item['tiles']
                 for tile in tiles:
-                    if tile['true'] >= redundancy and tile['true'] > tile['false']:
-                        redundancy_tile['x'] = tile['x']
-                        redundancy_tile['y'] = tile['y']
+                    redundancy_tile['zoom'] = item['zoom']
+                    redundancy_tile['task_id'] = item['task_id']
+                    if (tile['true'] >= redundancy and tile['true'] > tile['false']):
+                        redundancy_tile['x'] = int(tile['x'])
+                        redundancy_tile['y'] = int(tile['y'])
                         redundancy_tile['true'] = tile['true']
                         results.append(redundancy_tile)
+                        redundancy_tile = {}
         return results
+
