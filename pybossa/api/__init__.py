@@ -154,8 +154,7 @@ def _retrieve_new_task(project_id):
 @crossdomain(origin='*', headers=cors_headers)
 def get_km_square(project_short_name=None):
     if project_short_name:
-        project = project_repo.get_by_shortname(project_short_name)
-        redundancy = task_repo.get_tasks_redundancy(project)
+        redundancy = task_repo.get_tasks_redundancy_by_shortname(project_short_name)
         try:
             results = area_calculator.get_square_km_all_volunteers(project_short_name, redundancy)
             return Response(results, 200,
