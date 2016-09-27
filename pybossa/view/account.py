@@ -55,10 +55,11 @@ blueprint = Blueprint('account', __name__)
 mail_queue = Queue('super', connection=sentinel.master)
 
 def is_amnesty_sso_enable():
-    if ('AMNESTY_SSO_CONSUMER_KEY' in current_app.config):
-        return True
-    else:
-        return False
+    if ('AMNESTY_SSO_ENABLE' in current_app.config):
+        if current_app.config['AMNESTY_SSO_ENABLE']:
+            return True
+    
+    return False
 
 def amnesty_url_for(pybossa_url):
     urls = {
@@ -171,11 +172,13 @@ def signout():
 
     # when Identity Management (IM) available then after logout in pybossa 
     # we will redirect to IM so it will clear its session and its other children's ones
-    if 'AMNESTY_SSO_SERVER_URL' in current_app.config:
-        im_logout_url = current_app.config['AMNESTY_SSO_SERVER_URL']
-        if im_logout_url is not None:
-            im_logout_url = im_logout_url + '/api/v1/sso/pybossa/logout'
-            return redirect(im_logout_url)
+    if 'AMNESTY_SSO_ENABLE' in current_app.config:
+        if current_app.config['AMNESTY_SSO_ENABLE'] :
+            if 'AMNESTY_SSO_SERVER_URL' in current_app.config:
+                im_logout_url = current_app.config['AMNESTY_SSO_SERVER_URL']
+                if im_logout_url is not None:
+                    im_logout_url = im_logout_url + '/api/v1/sso/pybossa/logout'
+                    return redirect(im_logout_url)
 
     return redirect(url_for('home.home'))
 
