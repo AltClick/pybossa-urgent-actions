@@ -65,8 +65,7 @@ def amnesty_url_for(pybossa_url):
     urls = {
         '/forgot-password': '/password/reset',
         '/reset-password': '/account/change-password',
-        '/<name>/update': '/account/profile',
-        '/signin': '/login',
+        '/<name>/update': '/account/profile',        
         '/register': '/register'
     }
     return current_app.config['AMNESTY_SSO_SERVER_URL'] + urls[pybossa_url]
@@ -110,7 +109,7 @@ def signin():
     """
 
     if is_amnesty_sso_enable():
-        return redirect(amnesty_url_for('/signin'))
+        return redirect(url_for('amnesty.login'))
 
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
