@@ -1,5 +1,9 @@
-from bson import json_util
-import json
+from StringIO import StringIO
+import base64
+from pybossa.tilecalculations.tileinfo import tileInfo
+
+tileInfo = tileInfo()
+
 class TileCalculations():
 
     def tile_cords_and_zoom_to_quadKey_and_url(self, data):
@@ -19,6 +23,7 @@ class TileCalculations():
                     "url": url,
                     "zoom": zoom}
             task_data.append(tile)
+        print task_data
         return task_data
 
 
@@ -35,7 +40,17 @@ class TileCalculations():
         return quadKey
 
     def quadKey_to_url(self, quadKey):
-        #FIX: BING_MAPS_API_KEY -  get api key from local settings
-        api_key  = 'AtAixlkrsDwLlwTwXFZqpVP9nKyV-KbP5TbBJHWAIDVaovuYWZOHCKvUOksICp8t' 
+        api_key  = 'AtAixlkrsDwLlwTwXFZqpVP9nKyV-KbP5TbBJHWAIDVaovuYWZOHCKvUOksICp8t' #config.get("API_KEY")
         tile_url = ("http://t0.tiles.virtualearth.net/tiles/a{}.jpeg?g=854&mkt=en-US&token={}".format(quadKey, api_key))
-        return tile_url
+        response = self.stream_image(tile_url)
+        return response
+
+    def stream_image(self, url):
+        w = tileInfo.Info(url)
+        img_source = self.html_image(w.content, w.content_type)
+        return img_source
+
+    def html_image(self, data, content_type):
+        f = StringIO(data)
+        encoded = base64.b64encode(f.read())
+        return "data:{};base64,{}".format(content_type, encoded)
