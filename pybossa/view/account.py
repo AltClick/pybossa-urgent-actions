@@ -403,6 +403,10 @@ def projects(name):
     if current_user.name != name:
         return abort(403)
 
+    if not user.admin :        
+        if is_amnesty_sso_enable():        
+            return redirect(amnesty_url_for('/<name>/'))
+            
     user = user_repo.get(current_user.id)
     projects_published, projects_draft = _get_user_projects(user.id)
 
@@ -430,6 +434,10 @@ def update_profile(name):
     if not user:
         return abort(404)
     ensure_authorized_to('update', user)
+
+    if not user.admin :        
+        if is_amnesty_sso_enable():        
+            return redirect(amnesty_url_for('/<name>/'))
 
     show_passwd_form = True
     if user.twitter_user_id or user.google_user_id or user.facebook_user_id:
@@ -690,6 +698,11 @@ def reset_api_key(name):
     if not user:
         return abort(404)
     ensure_authorized_to('update', user)
+
+    if not user.admin :        
+        if is_amnesty_sso_enable():        
+            return redirect(amnesty_url_for('/<name>/'))
+
     user.api_key = model.make_uuid()
     user_repo.update(user)
     cached_users.delete_user_summary(user.name)
