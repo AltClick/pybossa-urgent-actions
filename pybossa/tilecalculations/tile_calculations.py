@@ -23,7 +23,6 @@ class TileCalculations():
                     "url": url,
                     "zoom": zoom}
             task_data.append(tile)
-        print task_data
         return task_data
 
 
