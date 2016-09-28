@@ -10,7 +10,7 @@ else:
 class tileInfo():
 
     class Info:
-        """Class collecting some information about the website located at the
+        """Class collecting some information about the content located at the
         given URL.
 
         :param url: Valid URL to the website *(e.g.
@@ -44,23 +44,18 @@ class tileInfo():
 
         @property
         def content(self):
-            """Get the website's content.
+            """Get the url's content.
 
-            :return: Content of the website *(e.g. HTML code)*.
+            :return: Content of the url *(e.g. HTML code)*.
             :rtype: str
             """
             return self._content
 
         @property
         def content_type(self):
-            """Get the website's content type.
+            """Get the url's content type.
 
-            .. note:
-               Check the output of this function using the ``startswith()`` method
-               of strings, because the returned string may contain additional
-               information, e.g. ``text/html; charset=utf-8``.
-
-            :return: Content-type of the website's code *(e.g. text/html)*.
+            :return: Content-type of the url's code *(e.g. image/jpeg )*.
             :rtype: str or NoneType
             """
             return self._site.info()["Content-Type"]
