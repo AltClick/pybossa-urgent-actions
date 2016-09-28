@@ -65,7 +65,7 @@ def amnesty_url_for(pybossa_url):
     urls = {
         '/forgot-password': '/password/reset',
         '/reset-password': '/account/change-password',
-        '/<name>/update': '/account/profile',        
+        '/<name>/': '/account/profile',        
         '/register': '/register'
     }
     return current_app.config['AMNESTY_SSO_SERVER_URL'] + urls[pybossa_url]
@@ -348,8 +348,12 @@ def profile(name):
     if current_user.is_anonymous() or (user.id != current_user.id):
         return _show_public_profile(user)
     if current_user.is_authenticated() and user.id == current_user.id:
-        return _show_own_profile(user)
+        # pybossa admin can still access pybossa account page event when we enable IM
+        if not user.admin :
+            if is_amnesty_sso_enable():
+                return redirect(amnesty_url_for('/<name>/'))
 
+        return _show_own_profile(user)
 
 def _show_public_profile(user):
     user_dict = cached_users.get_user_summary(user.name)
@@ -426,11 +430,6 @@ def update_profile(name):
     if not user:
         return abort(404)
     ensure_authorized_to('update', user)
-
-    # pybossa admin can still access pybossa account page event when we enable IM
-    if not user.admin :
-        if is_amnesty_sso_enable():
-            return redirect(amnesty_url_for('/<name>/update'))
 
     show_passwd_form = True
     if user.twitter_user_id or user.google_user_id or user.facebook_user_id:
