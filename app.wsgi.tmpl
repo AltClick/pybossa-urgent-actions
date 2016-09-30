@@ -8,3 +8,9 @@ sys.stdout = sys.stderr
 sys.path.insert(0, app_dir_path)
 
 from run import app as application
+
+import socket
+if socket.gethostname() == 'amnesty-test-03':
+  import newrelic.agent
+  newrelic.agent.initialize('/var/www/newrelic.ini')
+  application = newrelic.agent.WSGIApplicationWrapper(application)
