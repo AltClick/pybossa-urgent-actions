@@ -324,14 +324,5 @@ source ./venv/bin/activate
 alembic upgrade head
 ```
 
-### 6.2 Mongo Synching Database Update
-If you are getting the following message under /api/taskrun: 
-```
-exception_msg: "(psycopg2.ProgrammingError) column task_run.transfered_in_mongo does not exist LINE 1: ..._run_calibration, task_run.info AS task_run_info, task_run.t... ^ ",
-```
-Open terminal and connect to the pybossa database, and run the following command:
-```
- ALTER TABLE task_run ADD COLUMN transfered_in_mongo integer  NOT NULL DEFAULT '0';
-```
-
-**Note:** This should be setup so it can be updated via `alembic upgrade head`.
+## 7. New Relic Integration
+[New Relic](https://newrelic.com/) provides a wrapper script for Python applications, but it doesn’t work for setups using embedded interpreters, such as Apache with mod_wsgi. So if you went ahead and deployed the app using Apache mod_wsgi, then follow [these instructions](https://www.smallsurething.com/how-to-integrate-new-relic-with-django-apache-and-mod_wsgi/) to setup New Relic.
