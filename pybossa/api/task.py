@@ -60,9 +60,9 @@ class TaskAPI(APIBase):
             ensure_authorized_to('read', self.__class__)
             query = self._db_query(oid)
             json_response = self._create_json_response(query, oid)
-            checkUser = current_user.is_authenticated()
+            check_user = current_user.is_authenticated()
             data = json.loads(json_response)
-            if checkUser == True:
+            if check_user == True:
                 task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user=current_user)
             else:
                 task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user_ip=request.remote_addr)
