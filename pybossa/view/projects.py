@@ -751,8 +751,8 @@ def task_presenter(short_name, task_id):
         redirect_to_password = _check_if_redirect_to_password(project)
         if redirect_to_password:
             return redirect_to_password
-    # else:
-        # ensure_authorized_to('read', project)
+    else:
+        ensure_authorized_to('read', project)
 
     if current_user.is_anonymous():
         if not project.allow_anonymous_contributors:

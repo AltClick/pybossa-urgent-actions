@@ -5,7 +5,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
     def __init__(self):
         super(TaskRunMongoUtil, self).__init__('taskruns')
 
-    def consolidate_redundancy(self, project_short_name=None, task_id=None):
+    def consolidate_redundancy(self, project_short_name=None, ip=None):
         unwind_taskrun = {
             "$unwind": "$info.taskrun"
         }
@@ -139,8 +139,8 @@ class TaskRunMongoUtil(BaseMongoUtil):
         if project_short_name:
             match["$match"]["project_short_name"] = project_short_name
 
-        if task_id:
-            match["$match"]["task_id"] = task_id
+        if ip:
+            match["$match"]["user_ip"] = ip.replace('"', "")
 
         aggregation = [unwind_taskrun, match, group_1, sort_1, group_2, unwind_tiles, group_3, sort_2, group_4, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
@@ -176,7 +176,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
             match["$match"]["username"] = user
 
         if ip:
-            match["$match"]["user_ip"] = ip
+            match["$match"]["user_ip"] = ip.replace('"', "")
 
         aggregation = [match, group, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
