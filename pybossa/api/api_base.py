@@ -31,6 +31,7 @@ import datetime
 from flask import request, abort, Response
 from flask.ext.login import current_user
 from flask.views import MethodView
+from pybossa.mongo import task_run_mongo
 from werkzeug.exceptions import NotFound, Unauthorized, Forbidden
 from pybossa.util import jsonpify, crossdomain
 from pybossa.core import ratelimits
@@ -39,7 +40,6 @@ from pybossa.hateoas import Hateoas
 from pybossa.ratelimit import ratelimit
 from pybossa.error import ErrorStatus
 from pybossa.core import project_repo, user_repo, task_repo, result_repo
-from pybossa.mongo import task_run_mongo
 
 repos = {'Task'   : {'repo': task_repo, 'filter': 'filter_tasks_by',
                      'get': 'get_task', 'save': 'save', 'update': 'update',
@@ -49,7 +49,7 @@ repos = {'Task'   : {'repo': task_repo, 'filter': 'filter_tasks_by',
                      'delete': 'delete'},
         'User'    : {'repo': user_repo, 'filter': 'filter_by', 'get': 'get',
                      'save': 'save', 'update': 'update'},
-        'Project' : {'repo': project_repo, 'filter': 'filter_by',
+         'Project' : {'repo': project_repo, 'filter': 'filter_by',
                       'context': 'filter_owner_by', 'get': 'get',
                       'save': 'save', 'update': 'update', 'delete': 'delete'},
         'Category': {'repo': project_repo, 'filter': 'filter_categories_by',
@@ -207,28 +207,23 @@ class APIBase(MethodView):
             save_func = repos[self.__class__.__name__]['save']
             getattr(repo, save_func)(inst)
             self._log_changes(None, inst)
-            current_user_dumps = json.dumps(current_user.dictize())
-            inst_dumps = json.dumps(inst.dictize())
-            current_user_json = json.loads(current_user_dumps)
-            json_inst = json.loads(inst_dumps)
-            project = project_repo.get(inst.project_id)
-            project_short_name = project.short_name
+            project_short_name = inst.project.short_name
 
             # Including user information when saving task run in MongoDB.
             if current_user.is_authenticated():
-                data["username"] = current_user_json['name']
-                data["country"] = current_user_json["country"]
+                data["username"] = current_user.name
+                data["country"] = current_user.country
             else:
-                data["user_ip"] = json_inst["user_ip"]
+                data["user_ip"] = inst.user_ip
 
-            start_time = datetime.datetime.strptime(str(json_inst["created"]), "%Y-%m-%dT%H:%M:%S.%f")
-            finish_time = datetime.datetime.strptime(str(json_inst["finish_time"]), "%Y-%m-%dT%H:%M:%S.%f")
+            start_time = datetime.datetime.strptime(str(inst.created), "%Y-%m-%dT%H:%M:%S.%f")
+            finish_time = datetime.datetime.strptime(str(inst.finish_time), "%Y-%m-%dT%H:%M:%S.%f")
             data["project_short_name"] = project_short_name
             data["start_time"] = start_time
             data["finish_time"] = finish_time
             data["spent_time"] = (finish_time - start_time).total_seconds()
             task_run_mongo.insert_one(data)
-            return inst_dumps
+            return json.dumps(inst.dictize())
         except Exception as e:
             return error.format_exception(
                 e,
@@ -242,7 +237,6 @@ class APIBase(MethodView):
         ensure_authorized_to('create', inst)
         self._validate_instance(inst)
         return inst
-
 
     @jsonpify
     @crossdomain(origin='*', headers=cors_headers)

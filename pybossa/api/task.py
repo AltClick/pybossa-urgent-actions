@@ -32,7 +32,7 @@ from pybossa.util import jsonpify, crossdomain
 from pybossa.core import ratelimits
 from pybossa.auth import ensure_authorized_to
 from pybossa.ratelimit import ratelimit
-from pybossa.core import result_repo, task_repo
+from pybossa.core import  task_repo
 from api_base import APIBase, cors_headers
 from pybossa.error import ErrorStatus
 
@@ -60,10 +60,12 @@ class TaskAPI(APIBase):
             ensure_authorized_to('read', self.__class__)
             query = self._db_query(oid)
             json_response = self._create_json_response(query, oid)
-            data = json.loads(json_response)
-            task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user=current_user)
-            data['info']['processed'] = True if task_run else False
-            json_response = json.dumps(data)
+            checkUser = current_user.is_authenticated()
+            if checkUser == True:
+                data = json.loads(json_response)
+                task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user=current_user)
+                data['info']['processed'] = True if task_run else False
+                json_response = json.dumps(data)
             return Response(json_response, mimetype='application/json')
         except Exception as e:
             return error.format_exception(
