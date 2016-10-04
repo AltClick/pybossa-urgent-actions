@@ -66,6 +66,12 @@ class TaskAPI(APIBase):
                 task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user=current_user)
                 data['info']['processed'] = True if task_run else False
                 json_response = json.dumps(data)
+            else:
+                data = json.loads(json_response)
+                task_run = task_repo.get_task_run_by(project_id=data['project_id'], task_id=data['id'], user_ip=request.remote_addr)
+                data['info']['processed'] = True if task_run else False
+                json_response = json.dumps(data)
+
             return Response(json_response, mimetype='application/json')
         except Exception as e:
             return error.format_exception(
