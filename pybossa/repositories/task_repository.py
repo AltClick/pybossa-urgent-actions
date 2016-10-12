@@ -26,6 +26,7 @@ from pybossa.exc import WrongObjectError, DBIntegrityError
 from pybossa.cache import projects as cached_projects
 from pybossa.core import uploader
 from sqlalchemy import text
+import random
 
 
 class TaskRepository(Repository):
@@ -33,6 +34,14 @@ class TaskRepository(Repository):
     # Methods for queries on Task objects
     def get_task(self, id):
         return self.db.session.query(Task).get(id)
+
+    def get_random_ongoing_task(self, pid):
+        ongoing_tasks = self.db.session.query(Task).filter_by(project_id=pid, state='ongoing').all()
+
+        if len(ongoing_tasks) > 0:
+            return random.choice(ongoing_tasks)
+        else:
+            return None
 
     def get_task_by(self, **attributes):
         filters = self.generate_query_from_keywords(Task, **attributes)
