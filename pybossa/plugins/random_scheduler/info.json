@@ -1,0 +1,8 @@
+{
+    "identifier": "random_scheduler",
+    "name": "RandomScheduler",
+    "author": "alejandrodob",
+    "license": "AGPLv3",
+    "description": "Random scheduler for PyBossa.",
+    "version": "0.0.1"
+}
