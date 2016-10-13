@@ -13,7 +13,7 @@ SCHEDULER_NAME = 'random'
 def get_random_task(project_id, user_id=None, user_ip=None,
                     n_answers=30, offset=0):
     """Return a random task for the user."""
-    random_ongoing_task = task_repo.get_random_ongoing_task(project_id)
+    random_ongoing_task = task_repo.get_random_ongoing_task(project_id, user_id, user_ip)
     return random_ongoing_task
 
 

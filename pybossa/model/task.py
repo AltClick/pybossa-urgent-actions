@@ -53,6 +53,19 @@ class Task(db.Model, DomainObject):
 
     task_runs = relationship(TaskRun, cascade='all, delete, delete-orphan', backref='task')
 
+    # build task object from dictionary
+    def __init__(self, row_proxy):
+        """Constructor"""
+        setattr(self, 'id', row_proxy[0])
+        setattr(self, 'created', row_proxy[1])
+        setattr(self, 'project_id', row_proxy[2])
+        setattr(self, 'state', row_proxy[3])
+        setattr(self, 'quorum', row_proxy[4])
+        setattr(self, 'calibration', row_proxy[5])
+        setattr(self, 'priority_0', row_proxy[6])
+        setattr(self, 'info', row_proxy[7])
+        setattr(self, 'n_answers', row_proxy[8])
+
 
     def pct_status(self):
         """Returns the percentage of Tasks that are completed"""

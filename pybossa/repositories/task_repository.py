@@ -35,13 +35,41 @@ class TaskRepository(Repository):
     def get_task(self, id):
         return self.db.session.query(Task).get(id)
 
-    def get_random_ongoing_task(self, pid):
-        ongoing_tasks = self.db.session.query(Task).filter_by(project_id=pid, state='ongoing').all()
+    def get_random_ongoing_task(self, project_id, user_id, user_ip):
 
-        if len(ongoing_tasks) > 0:
-            return random.choice(ongoing_tasks)
-        else:
-            return None
+        # If an authenticated user requests for a random task
+        if user_id is not None:
+            sql = text('''
+                SELECT * FROM "task"
+                LEFT JOIN "task_run"
+                ON task_run.task_id = task.id
+                WHERE task.project_id = :project_id
+                AND task.state = 'ongoing'
+                AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_id != :user_id OR task_run.user_id IS NULL)))
+                ORDER BY random() LIMIT 1;
+            ''')
+
+            task_row_proxy = self.db.session.execute(sql, dict(project_id=project_id, user_id=user_id)).fetchone()
+            return Task(task_row_proxy)
+
+        # If an anonymous user requests for a random task
+        elif user_ip is not None:
+            sql = text('''
+                SELECT * FROM "task"
+                LEFT JOIN "task_run"
+                ON task_run.task_id = task.id
+                WHERE task.project_id = :project_id
+                AND task.state = 'ongoing'
+                AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_ip != :user_ip OR task_run.user_ip IS NULL)))
+                ORDER BY random() LIMIT 1;
+            ''')
+
+            task_row_proxy = self.db.session.execute(sql, dict(project_id=project_id, user_ip=user_ip)).fetchone()
+            return Task(task_row_proxy)
+
+        # Normally, this is an unreachable return statement
+        return None
+
 
     def get_task_by(self, **attributes):
         filters = self.generate_query_from_keywords(Task, **attributes)
