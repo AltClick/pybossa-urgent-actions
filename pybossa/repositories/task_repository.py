@@ -35,6 +35,17 @@ class TaskRepository(Repository):
     def get_task(self, id):
         return self.db.session.query(Task).get(id)
 
+    def flag_task_as_broken(self, task_id):
+        sql = text('''
+                   UPDATE task SET is_broken=:is_broken,
+                   WHERE id=:task_id''')
+
+        self.db.session.execute(sql, dict(is_broken=True, task_id=task_id))
+        self.db.session.commit()
+
+        # Let's not clean the project for every update on is_broken flag
+        #cached_projects.clean_project(project_id)
+
     def get_random_ongoing_task(self, project_id, user_id, user_ip):
 
         # If an authenticated user requests for a random task
@@ -44,6 +55,7 @@ class TaskRepository(Repository):
                 LEFT JOIN "task_run"
                 ON task_run.task_id = task.id
                 WHERE task.project_id = :project_id
+                AND is_broken=FALSE
                 AND task.state = 'ongoing'
                 AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_id != :user_id OR task_run.user_id IS NULL)))
                 ORDER BY random() LIMIT 1;
@@ -58,7 +70,8 @@ class TaskRepository(Repository):
                 SELECT * FROM "task"
                 LEFT JOIN "task_run"
                 ON task_run.task_id = task.id
-                WHERE task.project_id = :project_id
+                AND WHERE task.project_id = :project_id
+                ais_broken=FALSE
                 AND task.state = 'ongoing'
                 AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_ip != :user_ip OR task_run.user_ip IS NULL)))
                 ORDER BY random() LIMIT 1;

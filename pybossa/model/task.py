@@ -32,7 +32,6 @@ class Task(db.Model, DomainObject):
     '''
     __tablename__ = 'task'
 
-
     #: Task.ID
     id = Column(Integer, primary_key=True)
     #: UTC timestamp when the task was created.
@@ -51,6 +50,9 @@ class Task(db.Model, DomainObject):
     #: Number of answers to collect for this task.
     n_answers = Column(Integer, default=5)
 
+    # If a task is broken, we can flag it and not serve it anymore
+    is_broken = Column(Boolean, default=False)
+
     task_runs = relationship(TaskRun, cascade='all, delete, delete-orphan', backref='task')
 
     # build task object from dictionary
@@ -65,7 +67,7 @@ class Task(db.Model, DomainObject):
         setattr(self, 'priority_0', row_proxy[6])
         setattr(self, 'info', row_proxy[7])
         setattr(self, 'n_answers', row_proxy[8])
-
+        setattr(self, 'is_broken', row_proxy[9])
 
     def pct_status(self):
         """Returns the percentage of Tasks that are completed"""

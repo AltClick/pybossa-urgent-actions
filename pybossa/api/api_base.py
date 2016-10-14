@@ -198,17 +198,28 @@ class APIBase(MethodView):
 
         """
         try:
-            # Save in the Postgresl database
+
+            # Get task run from request.
             self.valid_args()
             data = json.loads(request.data)
             self._forbidden_attributes(data)
             inst = self._create_instance_from_request(data)
+
+            # Flag task as broken, if it's broken.
+            # We do this so that it isn't served to other tasks.
+            is_broken = bool(data["is_broken"])
+            if is_broken:
+                task_repo.flag_task_as_broken(data["id"])
+
+
+            # Save taskrun in Postgresql database
             repo = repos[self.__class__.__name__]['repo']
             save_func = repos[self.__class__.__name__]['save']
             getattr(repo, save_func)(inst)
             self._log_changes(None, inst)
             project_short_name = inst.project.short_name
 
+            # Save taskrun in MongoDB database
             # Including user information when saving task run in MongoDB.
             if current_user.is_authenticated():
                 data["username"] = current_user.name
@@ -222,7 +233,10 @@ class APIBase(MethodView):
             data["start_time"] = start_time
             data["finish_time"] = finish_time
             data["spent_time"] = (finish_time - start_time).total_seconds()
+
+            # Save task run in Mongo
             task_run_mongo.insert_one(data)
+
             return json.dumps(inst.dictize())
         except Exception as e:
             return error.format_exception(
