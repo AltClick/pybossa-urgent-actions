@@ -37,7 +37,7 @@ class TaskRepository(Repository):
 
     def flag_task_as_broken(self, task_id):
         sql = text('''
-                   UPDATE task SET is_broken=:is_broken, state='completed', n_answers=0,
+                   UPDATE task SET is_broken=:is_broken, state='completed', n_answers=0
                    WHERE id=:task_id''')
 
         self.db.session.execute(sql, dict(is_broken=True, task_id=task_id))
@@ -202,7 +202,7 @@ class TaskRepository(Repository):
         # Update task.state according to their new n_answers value
         sql = text('''
                    WITH project_tasks AS (
-                   SELECT task.id, task.n_answers
+                   SELECT task.id, task.n_answers,
                    COUNT(task_run.id) AS n_task_runs, task.state
                    FROM task, task_run
                    WHERE task_run.task_id=task.id

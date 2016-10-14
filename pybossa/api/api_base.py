@@ -193,7 +193,7 @@ class APIBase(MethodView):
     def post(self):
         """Post an item to the DB with the request.data JSON object.
 
-        :arg self: The class of the object to be inserted
+     UPDATE "task" SET is_broken = 'f';   :arg self: The class of the object to be inserted
         :returns: The JSON item stored in the DB
 
         """
@@ -207,9 +207,9 @@ class APIBase(MethodView):
 
             # Flag task as broken, if it's broken.
             # We do this so that it isn't served to other tasks.
-            is_broken = bool(data["is_broken"])
+            is_broken = bool(data["info"]["is_broken"])
             if is_broken:
-                task_repo.flag_task_as_broken(data["id"])
+                task_repo.flag_task_as_broken(data["task_id"])
 
 
             # Save taskrun in Postgresql database
