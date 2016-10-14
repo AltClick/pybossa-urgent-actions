@@ -193,7 +193,7 @@ class APIBase(MethodView):
     def post(self):
         """Post an item to the DB with the request.data JSON object.
 
-     UPDATE "task" SET is_broken = 'f';   :arg self: The class of the object to be inserted
+        UPDATE "task" SET is_broken = 'f';   :arg self: The class of the object to be inserted
         :returns: The JSON item stored in the DB
 
         """

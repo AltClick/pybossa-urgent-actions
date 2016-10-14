@@ -37,7 +37,7 @@ class TaskRepository(Repository):
 
     def flag_task_as_broken(self, task_id):
         sql = text('''
-                   UPDATE task SET is_broken=:is_broken, state='completed', n_answers=0
+                   UPDATE task SET is_broken=:is_broken, state='broken', n_answers=0
                    WHERE id=:task_id''')
 
         self.db.session.execute(sql, dict(is_broken=True, task_id=task_id))

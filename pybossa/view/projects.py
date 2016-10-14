@@ -801,6 +801,9 @@ def presenter(short_name):
         task = sched.new_task(project.id, project.info.get('sched'), user_id, user_ip, 0)
         return task is None and overall_progress < 100.0
 
+    def project_is_finished(project):
+        return overall_progress == 100
+
     def respond(tmpl):
         if (current_user.is_anonymous()):
             msg_1 = gettext(msg)
@@ -821,7 +824,8 @@ def presenter(short_name):
 
     title = project_title(project, "Contribute")
     template_args = {"project": project, "title": title, "owner": owner,
-                     "invite_new_volunteers": invite_new_volunteers(project)}
+                     "invite_new_volunteers": invite_new_volunteers(project),
+                     "project_is_finished": project_is_finished(project)}
 
     if not project.allow_anonymous_contributors and current_user.is_anonymous():
         msg = "Oops! You have to sign in to participate in <strong>%s</strong> \
