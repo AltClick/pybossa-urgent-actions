@@ -51,7 +51,7 @@ def get_breadth_first_task(project_id, user_id=None, user_ip=None, offset=0):
                    SELECT task.id, COUNT(task_run.task_id) AS taskcount
                    FROM task
                    LEFT JOIN task_run ON (task.id = task_run.task_id)
-                   WHERE NOT EXISTS
+                   WHERE is_broken=FALSE AND NOT EXISTS
                    (SELECT 1 FROM task_run WHERE project_id=:project_id AND
                    user_id=:user_id AND task_id=task.id)
                    AND task.project_id=:project_id AND task.state !='completed'
@@ -66,7 +66,7 @@ def get_breadth_first_task(project_id, user_id=None, user_ip=None, offset=0):
                    SELECT task.id, COUNT(task_run.task_id) AS taskcount
                    FROM task
                    LEFT JOIN task_run ON (task.id = task_run.task_id)
-                   WHERE NOT EXISTS
+                   WHERE is_broken=FALSE AND NOT EXISTS
                    (SELECT 1 FROM task_run WHERE project_id=:project_id AND
                    user_ip=:user_ip AND task_id=task.id)
                    AND task.project_id=:project_id AND task.state !='completed'
@@ -121,7 +121,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
     rows = None
     if user_id and not user_ip:
         query = text('''
-                     SELECT id FROM task WHERE NOT EXISTS
+                     SELECT id FROM task WHERE is_broken=FALSE AND NOT EXISTS
                      (SELECT task_id FROM task_run WHERE
                      project_id=:project_id AND user_id=:user_id
                         AND task_id=task.id)
@@ -133,7 +133,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
         if not user_ip:
             user_ip = '127.0.0.1'
         query = text('''
-                     SELECT id FROM task WHERE NOT EXISTS
+                     SELECT id FROM task WHERE is_broken=FALSE AND NOT EXISTS
                      (SELECT task_id FROM task_run WHERE
                      project_id=:project_id AND user_ip=:user_ip
                         AND task_id=task.id)

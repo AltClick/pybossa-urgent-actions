@@ -35,6 +35,17 @@ class TaskRepository(Repository):
     def get_task(self, id):
         return self.db.session.query(Task).get(id)
 
+    def flag_task_as_broken(self, task_id):
+        sql = text('''
+                   UPDATE task SET is_broken=:is_broken, state='broken', n_answers=0
+                   WHERE id=:task_id''')
+
+        self.db.session.execute(sql, dict(is_broken=True, task_id=task_id))
+        self.db.session.commit()
+
+        # Let's not clean the project for every update on is_broken flag
+        #cached_projects.clean_project(project_id)
+
     def get_random_ongoing_task(self, project_id, user_id, user_ip):
 
         # If an authenticated user requests for a random task
@@ -44,6 +55,7 @@ class TaskRepository(Repository):
                 LEFT JOIN "task_run"
                 ON task_run.task_id = task.id
                 WHERE task.project_id = :project_id
+                AND is_broken=FALSE
                 AND task.state = 'ongoing'
                 AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_id != :user_id OR task_run.user_id IS NULL)))
                 ORDER BY random() LIMIT 1;
@@ -58,7 +70,8 @@ class TaskRepository(Repository):
                 SELECT * FROM "task"
                 LEFT JOIN "task_run"
                 ON task_run.task_id = task.id
-                WHERE task.project_id = :project_id
+                AND WHERE task.project_id = :project_id
+                ais_broken=FALSE
                 AND task.state = 'ongoing'
                 AND (task_run.task_id IS NULL OR (task_run.task_id IS NOT NULL AND (task_run.user_ip != :user_ip OR task_run.user_ip IS NULL)))
                 ORDER BY random() LIMIT 1;
@@ -184,7 +197,7 @@ class TaskRepository(Repository):
         Use raw SQL for performance"""
         sql = text('''
                    UPDATE task SET n_answers=:n_answers,
-                   state='ongoing' WHERE project_id=:project_id''')
+                   state='ongoing' WHERE project_id=:project_id AND is_broken=FALSE''')
         self.db.session.execute(sql, dict(n_answers=n_answer, project_id=project.id))
         # Update task.state according to their new n_answers value
         sql = text('''
@@ -192,12 +205,14 @@ class TaskRepository(Repository):
                    SELECT task.id, task.n_answers,
                    COUNT(task_run.id) AS n_task_runs, task.state
                    FROM task, task_run
-                   WHERE task_run.task_id=task.id AND task.project_id=:project_id
+                   WHERE task_run.task_id=task.id
+                   AND task.project_id=:project_id
+                   AND task.is_broken=FALSE
                    GROUP BY task.id)
                    UPDATE task SET state='completed'
                    FROM project_tasks
                    WHERE (project_tasks.n_task_runs >=:n_answers)
-                   and project_tasks.id=task.id
+                   AND project_tasks.id=task.id
                    ''')
         self.db.session.execute(sql, dict(n_answers=n_answer, project_id=project.id))
         self.db.session.commit()
