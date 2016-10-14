@@ -37,7 +37,7 @@ class TaskRepository(Repository):
 
     def flag_task_as_broken(self, task_id):
         sql = text('''
-                   UPDATE task SET is_broken=:is_broken, state='completed',
+                   UPDATE task SET is_broken=:is_broken, state='completed', n_answers=0,
                    WHERE id=:task_id''')
 
         self.db.session.execute(sql, dict(is_broken=True, task_id=task_id))
@@ -197,20 +197,22 @@ class TaskRepository(Repository):
         Use raw SQL for performance"""
         sql = text('''
                    UPDATE task SET n_answers=:n_answers,
-                   state='ongoing' WHERE project_id=:project_id''')
+                   state='ongoing' WHERE project_id=:project_id AND is_broken=FALSE''')
         self.db.session.execute(sql, dict(n_answers=n_answer, project_id=project.id))
         # Update task.state according to their new n_answers value
         sql = text('''
                    WITH project_tasks AS (
-                   SELECT task.id, task.n_answers,
+                   SELECT task.id, task.n_answers
                    COUNT(task_run.id) AS n_task_runs, task.state
                    FROM task, task_run
-                   WHERE task_run.task_id=task.id AND task.project_id=:project_id
+                   WHERE task_run.task_id=task.id
+                   AND task.project_id=:project_id
+                   AND task.is_broken=FALSE
                    GROUP BY task.id)
                    UPDATE task SET state='completed'
                    FROM project_tasks
                    WHERE (project_tasks.n_task_runs >=:n_answers)
-                   and project_tasks.id=task.id
+                   AND project_tasks.id=task.id
                    ''')
         self.db.session.execute(sql, dict(n_answers=n_answer, project_id=project.id))
         self.db.session.commit()
