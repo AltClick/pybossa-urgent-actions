@@ -34,7 +34,7 @@ import json
 from bson import json_util
 from flask import Blueprint, request, abort, Response, make_response
 from flask.ext.login import current_user
-from pybossa.mongo import task_run_mongo
+#from pybossa.mongo import task_run_mongo
 from pybossa.areacalculator import area_calculator
 from werkzeug.exceptions import NotFound
 from pybossa.util import jsonpify, crossdomain, get_user_id_or_ip
@@ -163,7 +163,7 @@ def get_km_square(project_short_name=None):
     else:
         return Response(json.dumps([]), mimetype="application/json")
 
-
+'''
 @jsonpify
 @blueprint.route('/project/<project_short_name>/validated/results.json')
 @blueprint.route('/project/<project_short_name>/validated/<int:task_id>/results.json')
@@ -183,6 +183,7 @@ def _get_tile_results(project_short_name=None, task_id=None):
                         mimetype='application/json')
     except Exception as e:
         return e.message
+'''
 
 @jsonpify
 @blueprint.route('/app/<short_name>/userprogress')

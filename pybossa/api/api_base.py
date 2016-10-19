@@ -31,7 +31,7 @@ import datetime
 from flask import request, abort, Response
 from flask.ext.login import current_user
 from flask.views import MethodView
-from pybossa.mongo import task_run_mongo
+#from pybossa.mongo import task_run_mongo
 from werkzeug.exceptions import NotFound, Unauthorized, Forbidden
 from pybossa.util import jsonpify, crossdomain
 from pybossa.core import ratelimits
@@ -217,10 +217,12 @@ class APIBase(MethodView):
             save_func = repos[self.__class__.__name__]['save']
             getattr(repo, save_func)(inst)
             self._log_changes(None, inst)
-            project_short_name = inst.project.short_name
 
+            '''
             # Save taskrun in MongoDB database
             # Including user information when saving task run in MongoDB.
+            project_short_name = inst.project.short_name
+
             if current_user.is_authenticated():
                 data["username"] = current_user.name
                 data["country"] = current_user.country
@@ -236,6 +238,7 @@ class APIBase(MethodView):
 
             # Save task run in Mongo
             task_run_mongo.insert_one(data)
+            '''
 
             return json.dumps(inst.dictize())
         except Exception as e:

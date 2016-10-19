@@ -5,7 +5,7 @@ from flask import request
 from flask.ext.login import current_user
 
 from pybossa.extensions import task_repo
-from pybossa.mongo import task_run_mongo
+#from pybossa.mongo import task_run_mongo
 import math
 
 
@@ -39,6 +39,7 @@ class AreaCalculator():
         return self.calculate_task_area_meters_sq(zoom_level) / 1000000
 
     def get_square_km_all_volunteers(self, project_short_name):
+        '''
         results = task_run_mongo.get_tasks_count()
         json_results = json.loads(json_util.dumps(results))
         sq_km_decoded = {
@@ -58,17 +59,24 @@ class AreaCalculator():
                     sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(False, project_short_name)
 
         return json_util.dumps(sq_km_decoded)
+        '''
+        return None
 
     @staticmethod
     def get_authenticated_user_results(project_short_name):
-        return task_run_mongo.get_tasks_count(user=current_user.name, project_short_name=project_short_name)
+        #return task_run_mongo.get_tasks_count(user=current_user.name, project_short_name=project_short_name)
+        return None
 
     @staticmethod
     def get_anonymous_user_results(project_short_name):
+        '''
         ip_addr = json_util.dumps(request.remote_addr)
         return task_run_mongo.get_tasks_count(ip=ip_addr, project_short_name=project_short_name)
+        '''
+        return None
 
     def get_current_user_square_km_decoded(self, is_authenticated, project_short_name):
+        '''
         if is_authenticated:
             results_user = self.get_authenticated_user_results(project_short_name)
         else:
@@ -80,3 +88,5 @@ class AreaCalculator():
             return self.calculate_task_area_km_sq(zoom_user) * counts_user
         else:
             return 0
+        '''
+        return None
