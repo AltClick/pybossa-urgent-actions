@@ -105,6 +105,8 @@ def get_incremental_task(project_id, user_id=None, user_ip=None, offset=0):
     task_id = candidate_task_ids[rand]
     task = session.query(Task).get(task_id)
     # Find last answer for the task
+    # Commenting this out because this data is not being used anywhere..
+    '''
     q = session.query(TaskRun)\
         .filter(TaskRun.task_id == task.id)\
         .order_by(TaskRun.finish_time.desc())
@@ -113,6 +115,7 @@ def get_incremental_task(project_id, user_id=None, user_ip=None, offset=0):
         task.info['last_answer'] = last_task_run.info
         # TODO: As discussed in GitHub #53
         # it is necessary to create a lock in the task!
+    '''
     return task
 
 
