@@ -129,7 +129,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
                      project_id=:project_id AND user_id=:user_id
                         AND task_id=task.id)
                      AND project_id=:project_id AND state !='completed'
-                     ORDER BY priority_0 DESC, id ASC LIMIT 10''')
+                     ORDER BY id ASC LIMIT 50''')
         rows = session.execute(query, dict(project_id=project_id,
                                            user_id=user_id))
     else:
@@ -141,7 +141,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
                      project_id=:project_id AND user_ip=:user_ip
                         AND task_id=task.id)
                      AND project_id=:project_id AND state !='completed'
-                     ORDER BY priority_0 DESC, id ASC LIMIT 10''')
+                     ORDER BY id ASC LIMIT 50''')
         rows = session.execute(query, dict(project_id=project_id,
                                            user_ip=user_ip))
 
@@ -150,4 +150,4 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
 
 def sched_variants():
     return [('default', 'Default'), ('breadth_first', 'Breadth First'),
-            ('depth_first', 'Depth First'), ('incremental', "Random")]
+            ('depth_first', 'Depth First'), ('incremental', "Incremental")]
