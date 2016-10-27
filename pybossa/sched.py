@@ -105,6 +105,8 @@ def get_incremental_task(project_id, user_id=None, user_ip=None, offset=0):
     task_id = candidate_task_ids[rand]
     task = session.query(Task).get(task_id)
     # Find last answer for the task
+    # Commenting this out because this data is not being used anywhere..
+    '''
     q = session.query(TaskRun)\
         .filter(TaskRun.task_id == task.id)\
         .order_by(TaskRun.finish_time.desc())
@@ -113,6 +115,7 @@ def get_incremental_task(project_id, user_id=None, user_ip=None, offset=0):
         task.info['last_answer'] = last_task_run.info
         # TODO: As discussed in GitHub #53
         # it is necessary to create a lock in the task!
+    '''
     return task
 
 
@@ -126,7 +129,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
                      project_id=:project_id AND user_id=:user_id
                         AND task_id=task.id)
                      AND project_id=:project_id AND state !='completed'
-                     ORDER BY priority_0 DESC, id ASC LIMIT 10''')
+                     ORDER BY id ASC LIMIT 50''')
         rows = session.execute(query, dict(project_id=project_id,
                                            user_id=user_id))
     else:
@@ -138,7 +141,7 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
                      project_id=:project_id AND user_ip=:user_ip
                         AND task_id=task.id)
                      AND project_id=:project_id AND state !='completed'
-                     ORDER BY priority_0 DESC, id ASC LIMIT 10''')
+                     ORDER BY id ASC LIMIT 50''')
         rows = session.execute(query, dict(project_id=project_id,
                                            user_ip=user_ip))
 
@@ -147,4 +150,4 @@ def get_candidate_task_ids(project_id, user_id=None, user_ip=None):
 
 def sched_variants():
     return [('default', 'Default'), ('breadth_first', 'Breadth First'),
-            ('depth_first', 'Depth First'), ('incremental', "Random")]
+            ('depth_first', 'Depth First'), ('incremental', "Incremental")]
