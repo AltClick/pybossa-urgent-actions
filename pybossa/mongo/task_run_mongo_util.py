@@ -1,6 +1,7 @@
 from flask import current_app
 from pybossa.mongo.base_mongo_util import BaseMongoUtil
 
+
 class TaskRunMongoUtil(BaseMongoUtil):
     def __init__(self):
         super(TaskRunMongoUtil, self).__init__('taskruns')
@@ -153,10 +154,24 @@ class TaskRunMongoUtil(BaseMongoUtil):
         if project_short_name:
             match["$match"]["project_short_name"] = project_short_name
 
+        condition = {
+            "$eq": []
+        }
+
+        if user:
+            condition["$eq"] = ["$username", user]
+
+        if ip:
+            condition["$eq"] = ["$user_ip", ip]
+
         group = {
             "$group": {
                 "_id": {
-                    "zoom": "$info.zoom"
+                    "$cond": [
+                        condition,
+                        "current_user",
+                        "all_volunteers"
+                    ]
                 },
                 "count": {
                     "$sum": 1
@@ -164,21 +179,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
             }
         }
 
-        project = {
-            "$project": {
-                "_id": 0,
-                "zoom": "$_id.zoom",
-                "counts": "$count"
-            }
-        }
-
-        if user:
-            match["$match"]["username"] = user
-
-        if ip:
-            match["$match"]["user_ip"] = ip.replace('"', "")
-
-        aggregation = [match, group, project]
+        aggregation = [match, group]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
 
     def validate_human_presence(self, redundancy, project_short_name, task_id=None):

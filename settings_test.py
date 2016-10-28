@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 SERVER_NAME='localhost'
+AMNESTY_SSO_ENABLE = True
 SECRET = 'foobar'
 SECRET_KEY = 'my-session-secret'
 SQLALCHEMY_DATABASE_TEST_URI = 'postgresql://rtester:rtester@localhost/pybossa_test'

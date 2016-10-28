@@ -56,7 +56,7 @@ from token import TokenAPI
 from result import ResultAPI
 from pybossa.core import project_repo, task_repo
 from pybossa.contributions_guard import ContributionsGuard
-from pybossa.cache import memoize, TWO_MINUTES, FIVE_MINUTES
+from pybossa.cache import memoize, TWO_MINUTES
 
 blueprint = Blueprint('api', __name__)
 
