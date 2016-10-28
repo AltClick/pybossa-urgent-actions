@@ -4,7 +4,6 @@ from bson import json_util
 from flask import request
 from flask.ext.login import current_user
 
-from pybossa.extensions import task_repo
 from pybossa.mongo import task_run_mongo
 import math
 
@@ -24,6 +23,7 @@ class AreaCalculator():
     }
     TILES_PER_TASK = 12
     TILE_PIXELS = 256
+    ZOOM = 18
 
     # calculates the tile length in meters.
     def calculate_tile_edge_length_meters(self, zoom_level):
@@ -39,44 +39,32 @@ class AreaCalculator():
         return self.calculate_task_area_meters_sq(zoom_level) / 1000000
 
     def get_square_km_all_volunteers(self, project_short_name):
-        results = task_run_mongo.get_tasks_count()
-        json_results = json.loads(json_util.dumps(results))
+        all_volunteers_docs = 0
+        current_user_docs = 0
         sq_km_decoded = {
             "all_volunteers": 0,
             "current_user": 0
         }
-        if len(json_results) > 1:
-            pass
+        if current_user.is_authenticated():
+            results = self.get_task_count(project_short_name=project_short_name, user=current_user.name)
         else:
-            if len(json_results) != 0:
-                zoom = json_results[0]['zoom']
-                counts = json_results[0]['counts']
-                sq_km_decoded["all_volunteers"] = self.calculate_task_area_km_sq(zoom) * counts
-                if current_user.is_authenticated():
-                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(True, project_short_name)
-                else:
-                    sq_km_decoded["current_user"] = self.get_current_user_square_km_decoded(False, project_short_name)
+            ip_addr = json_util.dumps(request.remote_addr)
+            results = self.get_task_count(project_short_name=project_short_name, ip=ip_addr)
 
+        json_results = json.loads(json_util.dumps(results))
+
+        for item in json_results:
+            if item["_id"] == "current_user":
+                current_user_docs = item["count"]
+            if item["_id"] == "all_volunteers":
+                all_volunteers_docs = item["count"]
+
+        all_volunteers_docs += current_user_docs
+
+        sq_km_decoded["current_user"] = self.calculate_task_area_km_sq(self.ZOOM) * current_user_docs
+        sq_km_decoded["all_volunteers"] = self.calculate_task_area_km_sq(self.ZOOM) * all_volunteers_docs
         return json_util.dumps(sq_km_decoded)
 
-    @staticmethod
-    def get_authenticated_user_results(project_short_name):
-        return task_run_mongo.get_tasks_count(user=current_user.name, project_short_name=project_short_name)
-
-    @staticmethod
-    def get_anonymous_user_results(project_short_name):
-        ip_addr = json_util.dumps(request.remote_addr)
-        return task_run_mongo.get_tasks_count(ip=ip_addr, project_short_name=project_short_name)
-
-    def get_current_user_square_km_decoded(self, is_authenticated, project_short_name):
-        if is_authenticated:
-            results_user = self.get_authenticated_user_results(project_short_name)
-        else:
-            results_user = self.get_anonymous_user_results(project_short_name)
-        json_results_user = json.loads(json_util.dumps(results_user))
-        if len(json_results_user) > 0:
-            zoom_user = json_results_user[0]['zoom']
-            counts_user = json_results_user[0]['counts']
-            return self.calculate_task_area_km_sq(zoom_user) * counts_user
-        else:
-            return 0
+    def get_task_count(self, project_short_name=None, user=None, ip=None):
+        result = task_run_mongo.get_tasks_count(project_short_name=project_short_name, user=user, ip=ip)
+        return result

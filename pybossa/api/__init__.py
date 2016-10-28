@@ -56,6 +56,7 @@ from token import TokenAPI
 from result import ResultAPI
 from pybossa.core import project_repo, task_repo
 from pybossa.contributions_guard import ContributionsGuard
+from pybossa.cache import memoize, TWO_MINUTES
 
 blueprint = Blueprint('api', __name__)
 
@@ -152,6 +153,7 @@ def _retrieve_new_task(project_id):
 @blueprint.route('/project/progress.json')
 @blueprint.route('/project/<project_short_name>/progress.json')
 @crossdomain(origin='*', headers=cors_headers)
+@memoize(timeout=TWO_MINUTES)
 def get_km_square(project_short_name=None):
     if project_short_name:
         try:

@@ -42,10 +42,12 @@ except ImportError:  # pragma: no cover
     import pybossa.default_settings as settings
     os.environ['PYBOSSA_REDIS_CACHE_DISABLED'] = '1'
 
-ONE_DAY = 24 * 60 * 60
-ONE_HOUR = 60 * 60
-HALF_HOUR = 30 * 60
-FIVE_MINUTES = 5 * 60
+ONE_MINUTE = 60
+ONE_HOUR = 60 * ONE_MINUTE
+ONE_DAY = 24 * ONE_HOUR
+HALF_HOUR = 30 * ONE_MINUTE
+FIVE_MINUTES = 5 * ONE_MINUTE
+TWO_MINUTES = 2 * ONE_MINUTE
 
 
 def get_key_to_hash(*args, **kwargs):
