@@ -151,19 +151,19 @@ def _retrieve_new_task(project_id):
 
 @jsonpify
 @blueprint.route('/project/progress.json')
-@blueprint.route('/project/<project_short_name>/progress.json')
+@blueprint.route('/project/<project_parent_short_name>/progress.json')
 @crossdomain(origin='*', headers=cors_headers)
 @memoize(timeout=TWO_MINUTES)
-def get_km_square(project_short_name=None):
-    if project_short_name:
+def get_km_square(project_parent_short_name=None):
+    if project_parent_short_name:
         try:
-            results = area_calculator.get_square_km_all_volunteers(project_short_name)
+            results = area_calculator.get_square_km_all_volunteers(project_parent_short_name)
             return Response(results, 200,
                             mimetype='application/json')
         except Exception as e:
             return e.message
     else:
-        return Response(json.dumps([]), mimetype="application/json")
+        return Response(json.dumps({}), mimetype="application/json")
 
 
 @jsonpify
@@ -172,6 +172,8 @@ def get_km_square(project_short_name=None):
 @crossdomain(origin='*', headers=cors_headers)
 @ratelimit(limit=ratelimits.get('LIMIT'), per=ratelimits.get('PER'))
 def _get_tile_results(project_short_name=None, task_id=None):
+    #FIXME: Should only be accessible by admin
+    '''
     try:
         if project_short_name and task_id:
             results = task_run_mongo.consolidate_redundancy(project_short_name, task_id)
@@ -185,6 +187,9 @@ def _get_tile_results(project_short_name=None, task_id=None):
                         mimetype='application/json')
     except Exception as e:
         return e.message
+    '''
+    return Response(json_util.dumps({}), 200, mimetype='application/json')
+
 
 @jsonpify
 @blueprint.route('/app/<short_name>/userprogress')
