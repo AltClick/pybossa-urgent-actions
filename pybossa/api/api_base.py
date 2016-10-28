@@ -206,6 +206,13 @@ class APIBase(MethodView):
             self._forbidden_attributes(data)
             inst = self._create_instance_from_request(data)
 
+            # Save model Postgresql database
+            repo = repos[self.__class__.__name__]['repo']
+            save_func = repos[self.__class__.__name__]['save']
+            getattr(repo, save_func)(inst)
+            self._log_changes(None, inst)
+
+            # save model in mongo if it is as Task Run.
             if type(inst) == TaskRun:
                 self.insert_in_mongo(inst, data)
 
@@ -222,12 +229,6 @@ class APIBase(MethodView):
         is_broken = bool(data["info"]["is_broken"])
         if is_broken:
             task_repo.flag_task_as_broken(data["task_id"])
-
-        # Save taskrun in Postgresql database
-        repo = repos[self.__class__.__name__]['repo']
-        save_func = repos[self.__class__.__name__]['save']
-        getattr(repo, save_func)(inst)
-        self._log_changes(None, inst)
 
         # Save taskrun in MongoDB database
         # Including user information when saving task run in MongoDB.
