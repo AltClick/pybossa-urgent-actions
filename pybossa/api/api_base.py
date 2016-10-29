@@ -235,8 +235,7 @@ class APIBase(MethodView):
         project_short_name = inst.project.short_name
 
         if current_user.is_authenticated():
-            data["username"] = current_user.name
-            data["country"] = current_user.country
+            data["user_id"] = current_user.id
         else:
             data["user_ip"] = inst.user_ip
 

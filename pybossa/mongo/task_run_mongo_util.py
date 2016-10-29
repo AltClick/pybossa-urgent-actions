@@ -146,7 +146,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
         aggregation = [unwind_taskrun, match, group_1, sort_1, group_2, unwind_tiles, group_3, sort_2, group_4, project]
         return current_app.mongo.db[self.collection_name].aggregate(aggregation)
 
-    def get_tasks_count(self, user=None, ip=None, project_parent_short_name=None):
+    def get_tasks_count(self, user_id=None, user_ip=None, project_parent_short_name=None):
         match = {
             "$match": {}
         }
@@ -158,11 +158,11 @@ class TaskRunMongoUtil(BaseMongoUtil):
             "$eq": []
         }
 
-        if user:
-            condition["$eq"] = ["$username", user]
+        if user_id:
+            condition["$eq"] = ["$user_id", user_id]
 
-        if ip:
-            condition["$eq"] = ["$user_ip", ip]
+        if user_ip:
+            condition["$eq"] = ["$user_ip", user_ip]
 
         group = {
             "$group": {
