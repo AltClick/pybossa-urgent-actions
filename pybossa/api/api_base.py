@@ -224,32 +224,58 @@ class APIBase(MethodView):
                 action='POST')
 
     def insert_in_mongo(self, inst, data):
-        # Flag task as broken, if it's broken.
-        # We do this so that it isn't served to other tasks.
+
+        # First, let's flag task as broken if it's broken.
+        # We do this so that it isn't served to other users.
         is_broken = bool(data["info"]["is_broken"])
         if is_broken:
             task_repo.flag_task_as_broken(data["task_id"])
+
+        task_run_doc = {}
 
         # Save taskrun in MongoDB database
         # Including user information when saving task run in MongoDB.
         project_short_name = inst.project.short_name
 
+        task_run_doc['project_id'] = data['project_id']
+
+        task_run_doc['project_parent_short_name'] = 'decode-darfur'
+        task_run_doc['project_short_name'] = project_short_name
+
+        task_run_doc['task_id'] = data['task_id']
+        task_run_doc['task_run_id'] = inst.id
+
+        task_run_doc['taskrun'] = data['info']['taskrun']
+        task_run_doc['zoom'] = data['info']['zoom']
+        task_run_doc['index'] = data['info']['index']
+        task_run_doc['is_broken'] = bool(data['info']['is_broken'])
+
         if current_user.is_authenticated():
-            data["user_id"] = current_user.id
+            task_run_doc["user_id"] = current_user.id
         else:
-            data["user_ip"] = inst.user_ip
+            task_run_doc["user_ip"] = inst.user_ip
 
-        start_time = datetime.datetime.strptime(str(inst.created), "%Y-%m-%dT%H:%M:%S.%f")
-        finish_time = datetime.datetime.strptime(str(inst.finish_time), "%Y-%m-%dT%H:%M:%S.%f")
+        start_datetime_format = None
+        if '.' in str(inst.created):
+            start_datetime_format = '%Y-%m-%dT%H:%M:%S.%f'
+        else:
+            start_datetime_format = '%Y-%m-%dT%H:%M:%S'
 
-        data["project_parent_short_name"] = 'decode-darfur'
-        data["project_short_name"] = project_short_name
-        data["start_time"] = start_time
-        data["finish_time"] = finish_time
-        data["spent_time"] = (finish_time - start_time).total_seconds()
+        finish_datetime_format = None
+        if '.' in str(inst.finish_time):
+            finish_datetime_format = '%Y-%m-%dT%H:%M:%S.%f'
+        else:
+            finish_datetime_format = '%Y-%m-%dT%H:%M:%S'
+
+        start_time = datetime.datetime.strptime(str(inst.created), start_datetime_format)
+        finish_time = datetime.datetime.strptime(str(inst.finish_time), finish_datetime_format)
+
+        task_run_doc['start_time'] = start_time
+        task_run_doc['finish_time'] = finish_time
+        task_run_doc['spent_time'] = (finish_time - start_time).total_seconds()
 
         # Save task run in Mongo
-        task_run_mongo.insert_one(data)
+        task_run_mongo.insert_one(task_run_doc)
 
     def _create_instance_from_request(self, data):
         data = self.hateoas.remove_links(data)
