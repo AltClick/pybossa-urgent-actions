@@ -245,10 +245,7 @@ class APIBase(MethodView):
         task_run_doc['task_id'] = data['task_id']
         task_run_doc['task_run_id'] = inst.id
 
-        task_run_doc['taskrun'] = data['info']['taskrun']
-        task_run_doc['zoom'] = data['info']['zoom']
-        task_run_doc['index'] = data['info']['index']
-        task_run_doc['is_broken'] = bool(data['info']['is_broken'])
+        task_run_doc['info'] = data['info']
 
         if current_user.is_authenticated():
             task_run_doc["user_id"] = current_user.id
