@@ -150,20 +150,13 @@ def _retrieve_new_task(project_id):
 
 
 @jsonpify
-@blueprint.route('/project/progress.json')
-@blueprint.route('/project/<project_parent_short_name>/progress.json')
+@blueprint.route('/project/<project_parent_short_name>/<user_id_or_ip>/progress.json')
 @crossdomain(origin='*', headers=cors_headers)
 @memoize(timeout=TWO_MINUTES)
-def get_km_square(project_parent_short_name=None):
-    if project_parent_short_name:
-        try:
-            results = area_calculator.get_square_km_all_volunteers(project_parent_short_name)
-            return Response(results, 200,
-                            mimetype='application/json')
-        except Exception as e:
-            return e.message
-    else:
-        return Response(json.dumps({}), mimetype="application/json")
+def get_km_square(project_parent_short_name, user_id_or_ip):
+    results = area_calculator.get_square_km_all_volunteers(project_parent_short_name, user_id_or_ip)
+    return Response(results, 200,
+                    mimetype='application/json')
 
 
 @jsonpify
