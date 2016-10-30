@@ -38,7 +38,7 @@ class AreaCalculator():
     def calculate_task_area_km_sq(self, zoom_level):
         return self.calculate_task_area_meters_sq(zoom_level) / 1000000
 
-    def get_square_km_all_volunteers(self, project_parent_short_name):
+    def get_square_km_all_volunteers(self, project_parent_short_name, user_id_or_ip):
         all_volunteers_docs = 0
         current_user_docs = 0
 
@@ -48,16 +48,22 @@ class AreaCalculator():
         }
 
         if current_user.is_authenticated():
-            results = self.get_task_count(project_parent_short_name=project_parent_short_name, user_id=current_user.id)
+            try:
+                user_id = int(user_id_or_ip)
+                results = self.get_task_count(project_parent_short_name=project_parent_short_name, user_id=user_id)
+            except ValueError:
+                # Only happens if someone makes the progress.json API get request and gives a string as user id while he or she is logged in.
+                results = {}
         else:
-            user_ip = json_util.dumps(request.remote_addr)
-            results = self.get_task_count(project_parent_short_name=project_parent_short_name, user_ip=user_ip)
+            #user_ip = json_util.dumps(request.remote_addr)
+            results = self.get_task_count(project_parent_short_name=project_parent_short_name, user_ip=user_id_or_ip)
 
         json_results = json.loads(json_util.dumps(results))
 
         for item in json_results:
             if item["_id"] == "current_user":
                 current_user_docs = item["count"]
+
             if item["_id"] == "all_volunteers":
                 all_volunteers_docs = item["count"]
 
@@ -65,6 +71,7 @@ class AreaCalculator():
 
         sq_km_decoded["current_user"] = self.calculate_task_area_km_sq(self.ZOOM) * current_user_docs
         sq_km_decoded["all_volunteers"] = self.calculate_task_area_km_sq(self.ZOOM) * all_volunteers_docs
+
         return json_util.dumps(sq_km_decoded)
 
     def get_task_count(self, project_parent_short_name=None, user_id=None, user_ip=None):

@@ -159,7 +159,7 @@ class TaskRunMongoUtil(BaseMongoUtil):
         }
 
         if user_id:
-            condition["$eq"] = ["$user_id", user_id]
+            condition["$eq"] = ["$user_id", int(user_id)]
 
         if user_ip:
             condition["$eq"] = ["$user_ip", user_ip.replace('"', "")]
