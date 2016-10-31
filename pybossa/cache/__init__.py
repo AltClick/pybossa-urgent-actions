@@ -42,6 +42,8 @@ except ImportError:  # pragma: no cover
     import pybossa.default_settings as settings
     os.environ['PYBOSSA_REDIS_CACHE_DISABLED'] = '1'
 
+TWENTY_SECONDS = 20
+THIRTY_SECONDS = 30
 ONE_MINUTE = 60
 ONE_HOUR = 60 * ONE_MINUTE
 ONE_DAY = 24 * ONE_HOUR
