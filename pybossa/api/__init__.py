@@ -56,7 +56,7 @@ from token import TokenAPI
 from result import ResultAPI
 from pybossa.core import project_repo, task_repo
 from pybossa.contributions_guard import ContributionsGuard
-from pybossa.cache import memoize, TWO_MINUTES
+from pybossa.cache import memoize, TWENTY_SECONDS
 
 blueprint = Blueprint('api', __name__)
 
@@ -152,7 +152,7 @@ def _retrieve_new_task(project_id):
 @jsonpify
 @blueprint.route('/project/<project_parent_short_name>/<user_id_or_ip>/progress.json')
 @crossdomain(origin='*', headers=cors_headers)
-@memoize(timeout=TWO_MINUTES)
+@memoize(timeout=TWENTY_SECONDS)
 def get_km_square(project_parent_short_name, user_id_or_ip):
     results = area_calculator.get_square_km_all_volunteers(project_parent_short_name, user_id_or_ip)
     return Response(results, 200,
