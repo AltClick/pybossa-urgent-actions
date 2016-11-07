@@ -182,8 +182,7 @@ def export_users():
     exportable_attributes = ('id', 'name', 'fullname', 'email_addr','created', 'locale', 'admin','country','newsletter_subscribe','decode_darfur', 'decode_darfur_2','urgent_actions', 'total_contributions' )
 
     contributions_by_user_id = task_repo.get_users_contribution_by_user_id()
-    for item in contributions_by_user_id:
-        print  item
+
     def respond_json():
         tmp = 'attachment; filename=all_users.json'
         res = Response(gen_json(), mimetype='application/json')
