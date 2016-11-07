@@ -48,7 +48,10 @@ from pybossa.news import NOTIFY_ADMIN
 from pybossa.model.task_run import TaskRun
 from pybossa.mongo import task_run_mongo
 from bson import json_util
-
+from pybossa.repositories import TaskRepository
+from pybossa.core import db
+from pybossa.core import task_repo
+import json
 
 blueprint = Blueprint('admin', __name__)
 
@@ -176,13 +179,11 @@ def users(user_id=None):
 @admin_required
 def export_users():
     """Export Users list in the given format, only for admins."""
-    exportable_attributes = ('id', 'name', 'fullname', 'email_addr',
-                             'created', 'locale', 'admin','country','newsletter_subscribe', 'total_contributions' )
+    exportable_attributes = ('id', 'name', 'fullname', 'email_addr','created', 'locale', 'admin','country','newsletter_subscribe','decode_darfur', 'decode_darfur_2','urgent_actions', 'total_contributions' )
 
-    def number_of_project_contributions(user, project):
-        nr_of_contributions = TaskRun.query.filter_by(user_id=user.id, project_id=project.id).count()
-        return nr_of_contributions
-
+    contributions_by_user_id = task_repo.get_users_contribution_by_user_id()
+    for item in contributions_by_user_id:
+        print  item
     def respond_json():
         tmp = 'attachment; filename=all_users.json'
         res = Response(gen_json(), mimetype='application/json')
@@ -190,9 +191,8 @@ def export_users():
         return res
 
     def gen_json():
-        users = user_repo.get_all()
         json_users = []
-        for user in users:
+        for user in contributions_by_user_id:
             json_users.append(dictize_with_exportable_attributes(user))
         return json.dumps(json_users)
 
@@ -200,9 +200,6 @@ def export_users():
         dict_user = {}
         for attr in exportable_attributes:
             dict_user[attr] = getattr(user, attr)
-        all_projects = project_repo.get_all()
-        for project in all_projects:
-            dict_user[project.name] = number_of_project_contributions(user, project)
         return dict_user
 
     def respond_csv():
@@ -215,7 +212,7 @@ def export_users():
 
     def gen_csv(out, writer, write_user):
         add_headers(writer)
-        for user in user_repo.get_all():
+        for user in contributions_by_user_id:
             write_user(writer, user)
         yield out.getvalue()
 
@@ -223,16 +220,11 @@ def export_users():
         values = []
         for attr in sorted(exportable_attributes):
             values.append(getattr(user, attr))
-        all_projects = project_repo.get_all()
-        for project in all_projects:
-            values.append(number_of_project_contributions(user, project))
         writer.writerow(values)
 
     def add_headers(writer):
         headers = sorted(exportable_attributes)
-        all_projects = project_repo.get_all()
-        for project in all_projects:
-            headers.append(project.name)
+
         writer.writerow(headers)
 
     export_formats = ["json", "csv"]

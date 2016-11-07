@@ -244,3 +244,33 @@ class TaskRepository(Repository):
         uploader.delete_file(csv_tasks_filename, container)
         uploader.delete_file(json_taskruns_filename, container)
         uploader.delete_file(csv_taskruns_filename, container)
+
+    def get_users_contribution_by_user_id(self):
+        sql = text('''SELECT u.id, u.name, u.fullname, u.email_addr, u.created, u.locale, u.admin, u.country, u.newsletter_subscribe, t.decode_darfur, t.urgent_actions,  t.decode_darfur+t.urgent_actions AS total_contributions
+                      FROM "user" u
+                      JOIN (
+                        SELECT user_id,
+                        MAX(CASE WHEN (project_id = '10') THEN count ELSE 0 END) AS decode_darfur_2,
+                        MAX(CASE WHEN (project_id = '9') THEN count ELSE 0 END) AS decode_darfur,
+                        MAX(CASE WHEN (project_id = '1') THEN count ELSE 0 END) AS urgent_actions
+                        FROM (
+                          SELECT project_id, user_id, count(*) AS count
+                          FROM task_run
+                          GROUP BY project_id, user_id) AS tb
+                        GROUP BY user_id
+                        ORDER BY user_id ) t
+                      ON t.user_id = u.id
+        ''')
+
+        results = self.db.session.execute(sql)
+        return results
+
+    def get_users_contribution_by_user_ip(self):
+        sql = text('''
+                        SELECT user_ip, project_id, count(*)
+                        AS COUNT FROM task_run
+                        WHERE user_ip IS NOT NULL
+                        GROUP BY user_ip, project_id;
+                        ''')
+        results = self.db.session.execute(sql)
+        return results
