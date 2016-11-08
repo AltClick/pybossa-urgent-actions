@@ -254,7 +254,7 @@ class TaskRepository(Repository):
         The outer MAX() aggregate will eliminate all NULLs and collapse it down to one row per id
         """
 
-        sql = text('''SELECT u.id, u.name, u.fullname, u.email_addr, u.created, u.locale, u.admin, u.country, u.newsletter_subscribe, t.decode_darfur, t.urgent_actions,  t.decode_darfur+t.urgent_actions AS total_contributions
+        sql = text('''SELECT u.id, u.name, u.fullname, u.email_addr, u.created, u.locale, u.admin, u.country, u.newsletter_subscribe, t.decode_darfur_2,t.decode_darfur, t.urgent_actions,  t.decode_darfur+t.urgent_actions AS total_contributions
                       FROM "user" u
                       JOIN (
                         SELECT user_id,
