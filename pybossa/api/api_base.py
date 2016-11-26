@@ -225,11 +225,13 @@ class APIBase(MethodView):
 
     def insert_in_mongo(self, inst, data):
 
-        # First, let's flag task as broken if it's broken.
-        # We do this so that it isn't served to other users.
-        is_broken = bool(data["info"]["is_broken"])
-        if is_broken:
-            task_repo.flag_task_as_broken(data["task_id"])
+        # broken task check for project that implement broken task detection
+        if 'is_broken' in data['info']:
+            # First, let's flag task as broken if it's broken.
+            # We do this so that it isn't served to other users.
+            is_broken = bool(data['info']['is_broken'])
+            if is_broken:
+                task_repo.flag_task_as_broken(data['task_id'])
 
         task_run_doc = {}
 
