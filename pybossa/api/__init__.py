@@ -171,6 +171,24 @@ def get_km_square(project_parent_short_name, user_id_or_ip):
     return Response(results, 200,
                     mimetype='application/json')
 
+@jsonpify
+@blueprint.route('/project/<project_id>/task_count.json')
+@crossdomain(origin='*', headers=cors_headers)
+def user_task_count(project_id=None):
+    if project_id:
+        try:
+            user_task_count = {}
+            if current_user.is_authenticated():
+                user_task_count['tasks'] = task_repo.count_task_runs_with(project_id=project_id,  user_id=current_user.id)
+            if current_user.is_anonymous():
+                user_task_count['tasks'] = task_repo.count_task_runs_with(project_id=project_id, user_ip=request.remote_addr)
+            results = json_util.dumps(user_task_count)
+            return Response(results, 200, mimetype='application/json')
+        except Exception as e:
+            return e.message
+    else:
+        return Response(json.dumps([]), mimetype="application/json")
+
 
 @jsonpify
 @blueprint.route('/project/<project_short_name>/validated/results.json')
