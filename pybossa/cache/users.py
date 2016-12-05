@@ -26,77 +26,144 @@ from pybossa.cache.projects import overall_progress, n_tasks, n_volunteers
 
 session = db.slave_session
 
-
 @memoize(timeout=timeouts.get('USER_TIMEOUT'))
-def get_leaderboard(n, user_id=None):
+def get_leaderboard(n, user_id=None, project_id=None, anonymize=False):
     """Return the top n users with their rank."""
-    sql = text('''
-               WITH global_rank AS (
-                    WITH scores AS (
-                        SELECT user_id, COUNT(*) AS score FROM task_run
-                        WHERE user_id IS NOT NULL GROUP BY user_id)
-                    SELECT user_id, score, rank() OVER (ORDER BY score desc)
-                    FROM scores)
-               SELECT rank, id, name, fullname, email_addr, info, created,
-               score FROM global_rank
-               JOIN public."user" on (user_id=public."user".id) ORDER BY rank
-               LIMIT :limit;
-               ''')
 
-    results = session.execute(sql, dict(limit=n))
+    sql = None
+    results = None
+
+    if project_id is not None:
+        sql = text('''
+            WITH global_rank AS (
+                 WITH scores AS (
+                     SELECT user_id, COUNT(*) AS score FROM task_run
+                     WHERE user_id IS NOT NULL AND project_id=:project_id GROUP BY user_id)
+                 SELECT user_id, score, rank() OVER (ORDER BY score desc)
+                 FROM scores)
+            SELECT rank, id, name, fullname, email_addr, info, created,
+            score FROM global_rank
+            JOIN public."user" on (user_id=public."user".id) ORDER BY rank
+            LIMIT :limit;
+            ''')
+
+        results = session.execute(sql, dict(limit=n, project_id=project_id))
+
+    else:
+        sql = text('''
+                   WITH global_rank AS (
+                        WITH scores AS (
+                            SELECT user_id, COUNT(*) AS score FROM task_run
+                            WHERE user_id IS NOT NULL GROUP BY user_id)
+                        SELECT user_id, score, rank() OVER (ORDER BY score desc)
+                        FROM scores)
+                   SELECT rank, id, name, fullname, email_addr, info, created,
+                   score FROM global_rank
+                   JOIN public."user" on (user_id=public."user".id) ORDER BY rank
+                   LIMIT :limit;
+                   ''')
+
+        results = session.execute(sql, dict(limit=n))
 
     top_users = []
     user_in_top = False
     for row in results:
         if (row.id == user_id):
             user_in_top = True
-        user = dict(
-            rank=row.rank,
-            id=row.id,
-            name=row.name,
-            fullname=row.fullname,
-            email_addr=row.email_addr,
-            info=row.info,
-            created=row.created,
-            score=row.score)
+
+        user = None
+
+        if anonymize:
+            user = dict(
+                rank=row.rank,
+                name=row.name,
+                score=row.score)
+        else:
+            user = dict(
+                rank=row.rank,
+                id=row.id,
+                name=row.name,
+                fullname=row.fullname,
+                email_addr=row.email_addr,
+                info=row.info,
+                created=row.created,
+                score=row.score)
         top_users.append(user)
     if (user_id is not None):
         if not user_in_top:
-            sql = text('''
-                       WITH global_rank AS (
-                            WITH scores AS (
-                                SELECT user_id, COUNT(*) AS score FROM task_run
-                                WHERE user_id IS NOT NULL GROUP BY user_id)
-                            SELECT user_id, score, rank() OVER
-                                (ORDER BY score desc)
-                            FROM scores)
-                       SELECT rank, id, name, fullname, email_addr, info, created,
-                              score FROM global_rank
-                       JOIN public."user" on (user_id=public."user".id)
-                       WHERE user_id=:user_id ORDER BY rank;
-                       ''')
-            user_rank = session.execute(sql, dict(user_id=user_id))
+
+            user_rank = None
+
+            if project_id is not None:
+                sql = text('''
+                    WITH global_rank AS (
+                         WITH scores AS (
+                             SELECT user_id, COUNT(*) AS score FROM task_run
+                             WHERE project_id=:project_id AND user_id IS NOT NULL GROUP BY user_id)
+                         SELECT user_id, score, rank() OVER
+                             (ORDER BY score desc)
+                         FROM scores)
+                    SELECT rank, id, name, fullname, email_addr, info, created,
+                           score FROM global_rank
+                    JOIN public."user" on (user_id=public."user".id)
+                    WHERE user_id=:user_id ORDER BY rank;
+                    ''')
+
+                user_rank = session.execute(sql, dict(project_id=project_id, user_id=user_id))
+
+            else:
+                sql = text('''
+                           WITH global_rank AS (
+                                WITH scores AS (
+                                    SELECT user_id, COUNT(*) AS score FROM task_run
+                                    WHERE user_id IS NOT NULL GROUP BY user_id)
+                                SELECT user_id, score, rank() OVER
+                                    (ORDER BY score desc)
+                                FROM scores)
+                           SELECT rank, id, name, fullname, email_addr, info, created,
+                                  score FROM global_rank
+                           JOIN public."user" on (user_id=public."user".id)
+                           WHERE user_id=:user_id ORDER BY rank;
+                           ''')
+
+                user_rank = session.execute(sql, dict(user_id=user_id))
+
             u = User.query.get(user_id)
             # Load by default user data with no rank
-            user = dict(
-                rank=-1,
-                id=u.id,
-                name=u.name,
-                fullname=u.fullname,
-                email_addr=u.email_addr,
-                info=u.info,
-                created=u.created,
-                score=-1)
-            for row in user_rank:  # pragma: no cover
+            user = None
+            if anonymize:
                 user = dict(
-                    rank=row.rank,
-                    id=row.id,
-                    name=row.name,
-                    fullname=row.fullname,
-                    email_addr=row.email_addr,
-                    info=row.info,
-                    created=row.created,
-                    score=row.score)
+                    rank=-1,
+                    name=u.name,
+                    score=-1)
+
+            else:
+                user = dict(
+                    rank=-1,
+                    id=u.id,
+                    name=u.name,
+                    fullname=u.fullname,
+                    email_addr=u.email_addr,
+                    info=u.info,
+                    created=u.created,
+                    score=-1)
+            for row in user_rank:  # pragma: no cover
+                user = None
+                if anonymize:
+                    user = dict(
+                        rank=row.rank,
+                        name=row.name,
+                        score=row.score)
+                else:
+                    user = dict(
+                        rank=row.rank,
+                        id=row.id,
+                        name=row.name,
+                        fullname=row.fullname,
+                        email_addr=row.email_addr,
+                        info=row.info,
+                        created=row.created,
+                        score=row.score)
             top_users.append(user)
 
     return top_users

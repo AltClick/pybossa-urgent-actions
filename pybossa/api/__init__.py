@@ -42,6 +42,7 @@ import pybossa.model as model
 from pybossa.core import csrf, ratelimits, sentinel
 from pybossa.ratelimit import ratelimit
 from pybossa.cache.projects import n_tasks
+from pybossa.cache import users as cached_users
 import pybossa.sched as sched
 from pybossa.error import ErrorStatus
 from global_stats import GlobalStatsAPI
@@ -147,6 +148,18 @@ def _retrieve_new_task(project_id):
                           user_ip,
                           offset)
     return task
+
+
+
+
+@jsonpify
+@blueprint.route('/project/<int:project_id>/leaderboard/limit/<int:limit>')
+@crossdomain(origin='*', headers=cors_headers)
+def get_top_project_contributors(project_id, limit):
+    user_id = None if current_user.is_anonymous() else current_user.id
+    top_contributors = cached_users.get_leaderboard(limit, user_id, project_id, True)
+
+    return Response(json.dumps(top_contributors), 200, mimetype='application/json')
 
 
 @jsonpify
