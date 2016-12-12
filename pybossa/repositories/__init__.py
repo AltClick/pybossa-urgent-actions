@@ -84,6 +84,7 @@ from task_repository import TaskRepository
 from auditlog_repository import AuditlogRepository
 from webhook_repository import WebhookRepository
 from result_repository import ResultRepository
+from user_score_repository import UserScoreRepository
 
 assert ProjectRepository
 assert UserRepository
@@ -92,3 +93,4 @@ assert TaskRepository
 assert AuditlogRepository
 assert WebhookRepository
 assert ResultRepository
+assert UserScoreRepository
