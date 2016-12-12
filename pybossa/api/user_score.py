@@ -25,7 +25,7 @@ This package adds GET, POST, PUT and DELETE methods for:
 from flask import redirect, url_for, request, abort
 from flask.ext.login import current_user
 from api_base import APIBase
-from pybossa.model.user import UserScore
+from pybossa.model.user_score import UserScore
 from pybossa.model.project import Project
 from pybossa.core import user_score_repo
 from werkzeug.exceptions import MethodNotAllowed
