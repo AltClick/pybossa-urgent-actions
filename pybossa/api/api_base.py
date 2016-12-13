@@ -58,7 +58,7 @@ repos = {'Task'   : {'repo': task_repo, 'filter': 'filter_tasks_by',
                      'update': 'update_category', 'delete': 'delete_category'},
         'Result': {'repo': result_repo, 'filter': 'filter_by', 'get': 'get',
                     'update': 'update'},
-        'UserScore': {'repo': user_score_repo, 'get': 'get', 'set': 'set'},
+        'UserScore': {'repo': user_score_repo,'save': 'save'},
         }
 
 
@@ -200,6 +200,7 @@ class APIBase(MethodView):
         :returns: The JSON item stored in the DB
 
         """
+
         try:
 
             # Get task run from request.
@@ -282,7 +283,9 @@ class APIBase(MethodView):
         data = self.hateoas.remove_links(data)
         inst = self.__class__(**data)
         self._update_object(inst)
-        ensure_authorized_to('create', inst)
+        instance_name = inst.__class__.__name__
+        if instance_name != 'UserScore':
+            ensure_authorized_to('create', inst)
         self._validate_instance(inst)
         return inst
 

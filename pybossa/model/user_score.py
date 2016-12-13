@@ -49,4 +49,3 @@ class UserScore(db.Model, DomainObject, UserMixin):
     ## Relationships
     #users = relationship(User, backref='user')
     #projects = relationship(Project, backref='owner')
-
