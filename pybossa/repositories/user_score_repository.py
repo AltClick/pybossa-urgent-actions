@@ -52,7 +52,7 @@ class UserScoreRepository(Repository):
                     self.db.session.rollback()
                     raise DBIntegrityError(e)
             else:
-                return ''
+                return False
         else:
             return Unauthorized()
 
