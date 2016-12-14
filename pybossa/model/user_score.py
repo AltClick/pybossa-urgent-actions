@@ -22,8 +22,7 @@ from sqlalchemy.orm import relationship, backref
 from flask.ext.login import UserMixin
 from pybossa.core import db
 from pybossa.model import DomainObject, make_timestamp
-from pybossa.model.project import Project
-from pybossa.model.user import User
+
 
 
 class UserScore(db.Model, DomainObject, UserMixin):
