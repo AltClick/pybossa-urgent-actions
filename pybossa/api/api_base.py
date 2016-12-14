@@ -39,7 +39,7 @@ from pybossa.auth import ensure_authorized_to
 from pybossa.hateoas import Hateoas
 from pybossa.ratelimit import ratelimit
 from pybossa.error import ErrorStatus
-from pybossa.core import project_repo, user_repo, task_repo, result_repo
+from pybossa.core import project_repo, user_repo, task_repo, result_repo, user_score_repo
 from pybossa.model.task_run import TaskRun
 
 repos = {'Task'   : {'repo': task_repo, 'filter': 'filter_tasks_by',
@@ -50,15 +50,17 @@ repos = {'Task'   : {'repo': task_repo, 'filter': 'filter_tasks_by',
                      'delete': 'delete'},
         'User'    : {'repo': user_repo, 'filter': 'filter_by', 'get': 'get',
                      'save': 'save', 'update': 'update'},
-         'Project' : {'repo': project_repo, 'filter': 'filter_by',
+        'Project' : {'repo': project_repo, 'filter': 'filter_by',
                       'context': 'filter_owner_by', 'get': 'get',
                       'save': 'save', 'update': 'update', 'delete': 'delete'},
         'Category': {'repo': project_repo, 'filter': 'filter_categories_by',
                      'get': 'get_category', 'save': 'save_category',
                      'update': 'update_category', 'delete': 'delete_category'},
         'Result': {'repo': result_repo, 'filter': 'filter_by', 'get': 'get',
-                    'update': 'update'}
+                    'update': 'update'},
+        'UserScore': {'repo': user_score_repo,'save': 'save'},
         }
+
 
 
 cors_headers = ['Content-Type', 'Authorization']
@@ -198,6 +200,7 @@ class APIBase(MethodView):
         :returns: The JSON item stored in the DB
 
         """
+
         try:
 
             # Get task run from request.
@@ -280,7 +283,9 @@ class APIBase(MethodView):
         data = self.hateoas.remove_links(data)
         inst = self.__class__(**data)
         self._update_object(inst)
-        ensure_authorized_to('create', inst)
+        instance_name = inst.__class__.__name__
+        if instance_name != 'UserScore':
+            ensure_authorized_to('create', inst)
         self._validate_instance(inst)
         return inst
 

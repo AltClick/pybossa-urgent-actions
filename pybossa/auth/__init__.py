@@ -19,7 +19,7 @@
 import inspect
 from flask import abort
 from flask.ext.login import current_user
-from pybossa.core import task_repo, project_repo, result_repo
+from pybossa.core import task_repo, project_repo, result_repo, user_score_repo
 
 import project
 import task
@@ -31,6 +31,7 @@ import blogpost
 import auditlog
 import webhook
 import result
+import user_score
 
 assert project
 assert task
@@ -42,7 +43,7 @@ assert blogpost
 assert auditlog
 assert webhook
 assert result
-
+assert user_score
 
 _actions = ['create', 'read', 'update', 'delete']
 _auth_classes = {'project': project.ProjectAuth,
@@ -54,7 +55,8 @@ _auth_classes = {'project': project.ProjectAuth,
                  'token': token.TokenAuth,
                  'user': user.UserAuth,
                  'webhook': webhook.WebhookAuth,
-                 'result': result.ResultAuth}
+                 'result': result.ResultAuth,
+                 'userscore': user_score.UserScoreAuth}
 
 
 def is_authorized(user, action, resource, **kwargs):
@@ -88,4 +90,6 @@ def _authorizer_for(resource_name):
         kwargs.update({'project_repo': project_repo})
     if resource_name in ('project', 'task', 'taskrun'):
         kwargs.update({'result_repo': result_repo})
+    if resource_name in ('userscore', 'user_score'):
+        kwargs.update({'user_score_repo': user_score_repo})
     return _auth_classes[resource_name](**kwargs)

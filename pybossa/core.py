@@ -180,6 +180,7 @@ def setup_repositories():
     from pybossa.repositories import AuditlogRepository
     from pybossa.repositories import WebhookRepository
     from pybossa.repositories import ResultRepository
+    from pybossa.repositories import UserScoreRepository
     global user_repo
     global project_repo
     global blog_repo
@@ -187,6 +188,7 @@ def setup_repositories():
     global auditlog_repo
     global webhook_repo
     global result_repo
+    global user_score_repo
     user_repo = UserRepository(db)
     project_repo = ProjectRepository(db)
     blog_repo = BlogRepository(db)
@@ -194,6 +196,7 @@ def setup_repositories():
     auditlog_repo = AuditlogRepository(db)
     webhook_repo = WebhookRepository(db)
     result_repo = ResultRepository(db)
+    user_score_repo = UserScoreRepository(db)
 
 
 def setup_error_email(app):

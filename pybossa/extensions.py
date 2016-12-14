@@ -37,7 +37,7 @@ The objects are:
 __all__ = ['sentinel', 'db', 'signer', 'mail', 'login_manager', 'facebook',
            'twitter', 'google', 'amnesty', 'misaka', 'babel', 'uploader', 'debug_toolbar',
            'csrf', 'timeouts', 'ratelimits', 'user_repo', 'project_repo',
-           'task_repo', 'blog_repo', 'auditlog_repo', 'newsletter', 'importer',
+           'task_repo', 'blog_repo', 'auditlog_repo', 'user_score_repo', 'newsletter', 'importer',
            'flickr', 'plugin_manager', 'assets', 'discourse_integration']
 
 # CACHE
@@ -55,6 +55,7 @@ project_repo = None
 blog_repo = None
 task_repo = None
 auditlog_repo = None
+user_score_repo = None
 
 # Signer
 from pybossa.signer import Signer
