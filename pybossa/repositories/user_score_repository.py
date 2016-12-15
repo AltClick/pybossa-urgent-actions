@@ -49,8 +49,9 @@ class UserScoreRepository(Repository):
         return -1
 
     def save(self, UserScore):
+        project_id = getattr(UserScore, 'project_id')
         if current_user.is_authenticated():
-            if not self._check_for_score():
+            if not self._check_for_score(project_id):
                 self._validate_can_be('saved', UserScore)
                 try:
                     self.db.session.add(UserScore)
@@ -69,12 +70,13 @@ class UserScoreRepository(Repository):
             msg = '%s cannot be %s by %s' % (name, action, self.__class__.__name__)
             raise WrongObjectError(msg)
 
-    def _check_for_score(self):
+    def _check_for_score(self, project_id):
         sql = text('''
                            SELECT * FROM "user_score"
                            WHERE user_score.user_id = :user_id
+                           AND user_score.project_id = :project_id
                        ''')
-        sql_result = self.db.session.execute(sql, dict(user_id=current_user.id))
+        sql_result = self.db.session.execute(sql, dict(user_id=current_user.id, project_id=project_id))
         user_score_result= sql_result.fetchall()
         if len(user_score_result):
             return True
