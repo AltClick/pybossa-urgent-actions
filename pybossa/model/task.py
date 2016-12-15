@@ -56,6 +56,8 @@ class Task(db.Model, DomainObject):
     task_runs = relationship(TaskRun, cascade='all, delete, delete-orphan', backref='task')
 
     # build task object from dictionary
+    # FIXME: This breaks "inst = self.__class__(**data)" in "def _create_instance_from_request(self, data):"
+    # in api_base.py. We have not noticed this because we have been creating tasks directly via sql scripts.
     def __init__(self, row_proxy):
         """Constructor"""
         setattr(self, 'id', row_proxy[0])

@@ -23,6 +23,7 @@ from pybossa.exc import WrongObjectError, DBIntegrityError
 from sqlalchemy.exc import IntegrityError
 from flask.ext.login import current_user
 from werkzeug.exceptions import MethodNotAllowed, Unauthorized
+
 class UserScoreRepository(Repository):
 
     # Methods for queries on UserScore objects
@@ -31,13 +32,19 @@ class UserScoreRepository(Repository):
         # Requesting the project score for an authenticated user
         if user_id is not None:
             sql = text('''
-                    SELECT * FROM "user_score"
+                    SELECT score FROM "user_score"
                     WHERE user_score.project_id = :project_id
                     AND user_score.user_id = :user_id
                 ''')
 
-            task_row_proxy = self.db.session.execute(sql, dict(project_id=project_id, user_id=user_id)).fetchone()
-            return UserScore(task_row_proxy).score
+            row_proxy = self.db.session.execute(sql, dict(project_id=project_id, user_id=user_id)).fetchone()
+
+            # If no record exists, return -1
+            if row_proxy is None:
+                return -1
+
+            else:
+                return int(row_proxy[0])
 
         return -1
 
@@ -67,7 +74,7 @@ class UserScoreRepository(Repository):
                            SELECT * FROM "user_score"
                            WHERE user_score.user_id = :user_id
                        ''')
-        sql_result = self.db.session.execute(sql, dict(user_id= current_user.id))
+        sql_result = self.db.session.execute(sql, dict(user_id=current_user.id))
         user_score_result= sql_result.fetchall()
         if len(user_score_result):
             return True

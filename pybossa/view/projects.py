@@ -56,7 +56,7 @@ from pybossa.forms.projects_view_forms import *
 from pybossa.importers import BulkImportException
 from pybossa.pro_features import ProFeatureHandler
 
-from pybossa.core import project_repo, user_repo, task_repo, blog_repo
+from pybossa.core import project_repo, user_repo, task_repo, blog_repo, user_score_repo
 from pybossa.core import webhook_repo, auditlog_repo
 from pybossa.auditlogger import AuditLogger
 from pybossa.contributions_guard import ContributionsGuard
@@ -774,7 +774,12 @@ def task_presenter(short_name, task_id):
             flash(msg_1 + "<a href=\"" + url + "\">Sign in now!</a>", "warning")
 
     title = project_title(project, "Contribute")
-    template_args = {"project": project, "title": title, "owner": owner}
+
+    # Get current user score for this project
+    user_id = None if current_user.is_anonymous() else current_user.id
+    user_score = user_score_repo.get(project.id, user_id)
+
+    template_args = {"project": project, "title": title, "owner": owner, "user_score": user_score}
 
     def respond(tmpl):
         return render_template(tmpl, **template_args)
@@ -823,7 +828,11 @@ def presenter(short_name):
         ensure_authorized_to('read', project)
 
     title = project_title(project, "Contribute")
-    template_args = {"project": project, "title": title, "owner": owner,
+    # Get current user score for this project
+    user_id = None if current_user.is_anonymous() else current_user.id
+    user_score = user_score_repo.get(project.id, user_id)
+
+    template_args = {"project": project, "title": title, "owner": owner, "user_score": user_score,
                      "invite_new_volunteers": invite_new_volunteers(project),
                      "project_is_finished": project_is_finished(project)}
 
