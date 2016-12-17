@@ -26,7 +26,7 @@ from pybossa.cache.projects import overall_progress, n_tasks, n_volunteers
 
 session = db.slave_session
 
-@memoize(timeout=timeouts.get('USER_TIMEOUT'))
+@memoize(timeout=timeouts.get('USER_TIMEOUT_LEADERBOARD'))
 def get_leaderboard(n, user_id=None, project_id=None, anonymize=False):
     """Return the top n users with their rank."""
 
