@@ -779,10 +779,6 @@ def task_presenter(short_name, task_id):
     user_id = None if current_user.is_anonymous() else current_user.id
     user_score = user_score_repo.get(project.id, user_id)
 
-    # jank fix, results seems to be cached...
-    user_score = user_score_repo.get(project.id, user_id)
-    user_score = user_score_repo.get(project.id, user_id)
-
     template_args = {"project": project, "title": title, "owner": owner, "user_score": user_score}
 
     def respond(tmpl):
