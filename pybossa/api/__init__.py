@@ -160,7 +160,6 @@ def _retrieve_new_task(project_id):
 def get_top_project_contributors(project_id, limit):
     user_id = None if current_user.is_anonymous() else current_user.id
     top_contributors = cached_users.get_leaderboard(limit, user_id, project_id, True)
-
     return Response(json.dumps(top_contributors), 200, mimetype='application/json')
 
 

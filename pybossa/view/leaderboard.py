@@ -36,3 +36,8 @@ def index():
 
     return render_template('/stats/index.html', title="Community Leaderboard",
                            top_users=top_users)
+
+
+@blueprint.route('/decode-the-difference')
+def decode_the_difference_leaderboard():
+    return render_template('/stats/decode_the_difference_leaderboard.html')
