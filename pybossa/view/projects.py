@@ -60,6 +60,7 @@ from pybossa.core import project_repo, user_repo, task_repo, blog_repo, user_sco
 from pybossa.core import webhook_repo, auditlog_repo
 from pybossa.auditlogger import AuditLogger
 from pybossa.contributions_guard import ContributionsGuard
+import datetime
 
 blueprint = Blueprint('project', __name__)
 
@@ -851,7 +852,8 @@ def presenter(short_name):
     if project.info.get("tutorial") and \
             request.cookies.get(project.short_name + "tutorial") is None:
         resp = respond('/projects/tutorial.html')
-        resp.set_cookie(project.short_name + 'tutorial', 'seen')
+        six_month_from_now_datetime = datetime.datetime.now() + datetime.timedelta(6 * 365 / 12)
+        resp.set_cookie(project.short_name + 'tutorial', 'seen', expires=six_month_from_now_datetime)
         return resp
     else:
         if has_no_presenter(project):
