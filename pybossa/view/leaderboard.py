@@ -20,11 +20,15 @@ from flask import Blueprint, current_app
 from flask import render_template
 from flask.ext.login import current_user
 from pybossa.cache import users as cached_users
+from pybossa.util import admin_required
+from flask.ext.login import login_required
 
 blueprint = Blueprint('leaderboard', __name__)
 
 
 @blueprint.route('/')
+@login_required
+@admin_required
 def index():
     """Get the last activity from users and projects."""
     if current_user.is_authenticated():
