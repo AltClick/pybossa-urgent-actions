@@ -247,67 +247,67 @@ def export_users():
     return {"json": respond_json, "csv": respond_csv}[fmt]()
 
 
-
-@blueprint.route('/users-export-contributions')
-@login_required
-@admin_required
-def export_users_and_total_contributions():
-    """Export Users list in the given format, only for admins."""
-    exportable_attributes = ('id', 'name', 'fullname', 'email_addr','created','user_ip', 'locale', 'admin','country','newsletter_subscribe','urgent_actions','decode_darfur', 'decode_darfur_2','decode_the_difference', 'total_contributions' )
-
-    contributions_by_user_id = task_repo.get_users_contribution_by_user_id()
-
-    def respond_json():
-        tmp = 'attachment; filename=all_users.json'
-        res = Response(gen_json(), mimetype='application/json')
-        res.headers['Content-Disposition'] = tmp
-        return res
-
-    def gen_json():
-        json_users = []
-        for user in contributions_by_user_id:
-            json_users.append(dictize_with_exportable_attributes(user))
-        return json.dumps(json_users)
-
-    def dictize_with_exportable_attributes(user):
-        dict_user = {}
-        for attr in exportable_attributes:
-            dict_user[attr] = getattr(user, attr)
-        return dict_user
-
-    def respond_csv():
-        out = StringIO()
-        writer = UnicodeWriter(out)
-        tmp = 'attachment; filename=all_users.csv'
-        res = Response(gen_csv(out, writer, write_user), mimetype='text/csv')
-        res.headers['Content-Disposition'] = tmp
-        return res
-
-    def gen_csv(out, writer, write_user):
-        add_headers(writer)
-        for user in contributions_by_user_id:
-            write_user(writer, user)
-        yield out.getvalue()
-
-    def write_user(writer, user):
-        values = []
-        for attr in exportable_attributes:
-            values.append(getattr(user, attr))
-        writer.writerow(values)
-
-    def add_headers(writer):
-        headers = exportable_attributes
-
-        writer.writerow(headers)
-
-    export_formats = ["json", "csv"]
-
-    fmt = request.args.get('format')
-    if not fmt:
-        return redirect(url_for('.index'))
-    if fmt not in export_formats:
-        abort(415)
-    return {"json": respond_json, "csv": respond_csv}[fmt]()
+# We developed this to get users contributions by user_id
+# @blueprint.route('/users-export-contributions')
+# @login_required
+# @admin_required
+# def export_users_and_total_contributions():
+#     """Export Users list in the given format, only for admins."""
+#     exportable_attributes = ('id', 'name', 'fullname', 'email_addr','created','user_ip', 'locale', 'admin','country','newsletter_subscribe','urgent_actions','decode_darfur', 'decode_darfur_2','decode_the_difference', 'total_contributions' )
+#
+#     contributions_by_user_id = task_repo.get_users_contribution_by_user_id()
+#
+#     def respond_json():
+#         tmp = 'attachment; filename=all_users.json'
+#         res = Response(gen_json(), mimetype='application/json')
+#         res.headers['Content-Disposition'] = tmp
+#         return res
+#
+#     def gen_json():
+#         json_users = []
+#         for user in contributions_by_user_id:
+#             json_users.append(dictize_with_exportable_attributes(user))
+#         return json.dumps(json_users)
+#
+#     def dictize_with_exportable_attributes(user):
+#         dict_user = {}
+#         for attr in exportable_attributes:
+#             dict_user[attr] = getattr(user, attr)
+#         return dict_user
+#
+#     def respond_csv():
+#         out = StringIO()
+#         writer = UnicodeWriter(out)
+#         tmp = 'attachment; filename=all_users.csv'
+#         res = Response(gen_csv(out, writer, write_user), mimetype='text/csv')
+#         res.headers['Content-Disposition'] = tmp
+#         return res
+#
+#     def gen_csv(out, writer, write_user):
+#         add_headers(writer)
+#         for user in contributions_by_user_id:
+#             write_user(writer, user)
+#         yield out.getvalue()
+#
+#     def write_user(writer, user):
+#         values = []
+#         for attr in exportable_attributes:
+#             values.append(getattr(user, attr))
+#         writer.writerow(values)
+#
+#     def add_headers(writer):
+#         headers = exportable_attributes
+#
+#         writer.writerow(headers)
+#
+#     export_formats = ["json", "csv"]
+#
+#     fmt = request.args.get('format')
+#     if not fmt:
+#         return redirect(url_for('.index'))
+#     if fmt not in export_formats:
+#         abort(415)
+#     return {"json": respond_json, "csv": respond_csv}[fmt]()
 
 
 @blueprint.route('/users/add/<int:user_id>')
