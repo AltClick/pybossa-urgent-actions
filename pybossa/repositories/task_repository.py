@@ -256,10 +256,11 @@ class TaskRepository(Repository):
         """
 
         sql = text ( '''
-                        SELECT u.id, u.name, u.fullname, u.email_addr,u.created, u.locale, u.admin, u.country, t.user_ip,  u.newsletter_subscribe, t.decode_darfur_2, t.decode_darfur, t.urgent_actions, t.decode_darfur+t.urgent_actions+t.decode_darfur_2 AS total_contributions
+                        SELECT u.id, u.name, u.fullname, u.email_addr,u.created, u.locale, u.admin, u.country, t.user_ip,  u.newsletter_subscribe, t.decode_darfur_2, t.decode_darfur, t.urgent_actions, t.decode_darfur+t.urgent_actions+t.decode_darfur_2+t.decode_the_difference AS total_contributions
                         FROM "user" u
                         FULL OUTER JOIN (
                           SELECT user_id, user_ip,
+                                 MAX(CASE WHEN (project_id = '13') THEN count ELSE 0 END) AS decode_the_difference,
                                  MAX(CASE WHEN (project_id = '10') THEN count ELSE 0 END) AS decode_darfur_2,
                                  MAX(CASE WHEN (project_id = '9')  THEN count ELSE 0 END) AS decode_darfur,
                                  MAX(CASE WHEN (project_id = '1')  THEN count ELSE 0 END) AS urgent_actions
