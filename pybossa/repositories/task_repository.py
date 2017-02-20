@@ -246,31 +246,25 @@ class TaskRepository(Repository):
         uploader.delete_file(csv_taskruns_filename, container)
 
     def get_users_contribution_by_user_id(self):
-        # FIXME: Make setting project id as column name dynamic
-
         """
-        Select all the fields from user export based on exportable attributes list
-        Full Outer Join will get the data for the user that have contributions
-        If  project_id matches the id string of each case, return count contributions field, otherwise return 0
-        The outer MAX() aggregate will eliminate all NULLs and collapse it down to one row per id
+            Select all the fields from user export based on exportable attributes list
         """
 
-        sql = text ( '''
-                        SELECT u.id, u.name, u.fullname, u.email_addr,u.created, u.locale, u.admin, u.country, t.user_ip,  u.newsletter_subscribe, t.decode_darfur_2, t.decode_darfur, t.urgent_actions, t.decode_darfur+t.urgent_actions+t.decode_darfur_2 AS total_contributions
-                        FROM "user" u
-                        FULL OUTER JOIN (
-                          SELECT user_id, user_ip,
-                                 MAX(CASE WHEN (project_id = '10') THEN count ELSE 0 END) AS decode_darfur_2,
-                                 MAX(CASE WHEN (project_id = '9')  THEN count ELSE 0 END) AS decode_darfur,
-                                 MAX(CASE WHEN (project_id = '1')  THEN count ELSE 0 END) AS urgent_actions
-                          FROM (
-                                 SELECT project_id, user_id, user_ip, count(*) AS count
-                                 FROM task_run
-                                 GROUP BY project_id, user_id, user_ip)
-                                 AS tb
-                          GROUP BY user_id, user_ip
-                          ORDER BY user_id) t
-                        ON t.user_id = u.id;
-        ''')
+        sql = text('''  SELECT
+                        u.name AS username,
+                        u.id,
+                        u.country,
+                        u.fullname,
+                        u.email_addr,
+                        u.created,
+                        u.admin,
+                        u.newsletter_subscribe,
+                        p.name AS project,
+                        COUNT(tr.task_id) AS submissions
+                        FROM "task_run" tr, "user" u, "project" p
+                        WHERE tr.user_id=u.id AND p.id=tr.project_id
+                        GROUP BY username, u.id, u.country, u.fullname, u.email_addr, u.created, u.admin, u.newsletter_subscribe, project
+                        ORDER BY username ASC;''')
+
         results = self.db.session.execute(sql)
         return results
