@@ -25,7 +25,7 @@ from pybossa.cache import projects as cached_projects
 from pybossa.cache import users as cached_users
 from pybossa.cache import categories as cached_cat
 from pybossa.util import rank
-
+import os
 
 blueprint = Blueprint('home', __name__)
 
