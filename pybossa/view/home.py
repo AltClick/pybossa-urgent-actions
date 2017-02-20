@@ -32,8 +32,6 @@ blueprint = Blueprint('home', __name__)
 
 @blueprint.route('robots.txt')
 def robots():
-    dir = os.path.dirname(__file__)
-
     if '.test.' in request.url:
         filename = os.path.join(current_app.root_path, 'themes/default/static/robots/test.txt')
         with open(filename, 'r') as f:
