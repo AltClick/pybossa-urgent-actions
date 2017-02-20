@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with PyBossa.  If not, see <http://www.gnu.org/licenses/>.
 """Home view for PyBossa."""
-from flask import current_app
+from flask import request, current_app, send_from_directory, url_for, Response, redirect
 from flask.ext.login import current_user
 from pybossa.model.category import Category
 from flask import Blueprint
@@ -28,6 +28,19 @@ from pybossa.util import rank
 
 
 blueprint = Blueprint('home', __name__)
+
+
+@blueprint.route('robots.txt')
+def robots():
+    if '.test.' in request.url:
+        with open('pybossa/themes/default/static/robots/test.txt', 'r') as f:
+            resp = f.read()
+        return Response(resp, mimetype="text/plain")
+    
+    else:
+        with open('pybossa/themes/default/static/robots/prod.txt', 'r') as f:
+            resp = f.read()
+        return Response(resp, mimetype="text/plain")
 
 
 @blueprint.route('/')
