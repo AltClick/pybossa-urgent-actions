@@ -179,7 +179,7 @@ def users(user_id=None):
 @admin_required
 def export_users():
     """Export Users list in the given format, only for admins."""
-    exportable_attributes = ('id', 'name', 'fullname', 'email_addr','created','user_ip', 'locale', 'admin','country','newsletter_subscribe','urgent_actions','decode_darfur', 'decode_darfur_2', 'total_contributions' )
+    exportable_attributes = ('username', 'id', 'country', 'fullname', 'email_addr', 'created', 'admin', 'newsletter_subscribe', 'project', 'submissions')
 
     contributions_by_user_id = task_repo.get_users_contribution_by_user_id()
 
