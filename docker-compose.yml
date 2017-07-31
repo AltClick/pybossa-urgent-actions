@@ -1,0 +1,39 @@
+version: '2'
+services:
+      pybossa:
+          build:
+              context: .
+          ports:
+              - 8888:80
+          links:
+            - sentinel:sentinel
+      postgres:
+          image: postgres:9.6
+          ports:
+              - 5432:5432
+          volumes:
+              - pg-data:/var/lib/postgresql/data
+          environment:
+              POSTGRES_DB: pybossa
+              POSTGRES_USER: pybossa
+      mongo:
+          image: mongo:3.4
+      master:
+          image: redis:3
+      slave:
+          image: redis:3
+          command: redis-server --slaveof redis-master 6379
+          links:
+            - master:redis-master
+      sentinel:
+          build:
+              context: sentinel
+          environment:
+            - SENTINEL_DOWN_AFTER=5000
+            - SENTINEL_FAILOVER=5000
+          links:
+            - master:redis-master
+            - slave
+
+volumes:
+    pg-data: {}
